@@ -1,26 +1,32 @@
 {
-	"id": "your-module-name",
-	"name": "your-module-name",
-	"shortname": "module-shortname",
-	"description": "A short one line description of your module",
-	"version": "0.0.0",
+	"id": "voicemeeter-proxy",
+	"name": "voicemeeter-proxy",
+	"shortname": "Voicemeeter",
+	"description": "Voicemeeter API Library and Proxy",
+	"version": "1.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-your-module-name.git",
-	"bugs": "https://github.com/bitfocus/companion-module-your-module-name/issues",
+	"repository": "https://github.com/bitfocus/companion-module-voicemeeter-proxy.git",
+	"bugs": "https://github.com/thedist/voicemeeter-proxy/issues",
 	"maintainers": [
 		{
-			"name": "Your name",
-			"email": "Your email"
+			"name": "Jeff Martin",
+			"email": "dist@dist.dev",
+			"url": "https://dist.dev"
 		}
 	],
+	"legacyIds": [],
 	"runtime": {
 		"type": "node18",
 		"api": "nodejs-ipc",
 		"apiVersion": "0.0.0",
-		"entrypoint": "../main.js"
+		"entrypoint": "..\\dist\\index.js"
 	},
-	"legacyIds": [],
-	"manufacturer": "Your company",
-	"products": ["Your product"],
-	"keywords": []
+	"manufacturer": "VBAudio",
+	"products": [
+		"Voicemeeter"
+	],
+	"keywords": [
+		"voicemeeter",
+		"audio"
+	]
 }

@@ -1,4 +1,9 @@
 node_modules/
+.vscode/
+dist/
 package-lock.json
+yarn-error.log
 /pkg
 /pkg.tgz
+DEBUG-INSPECT
+DEBUG-PACKAGED

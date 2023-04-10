@@ -1,20 +1,50 @@
 {
-	"name": "your-module-name",
-	"version": "0.1.0",
-	"main": "main.js",
-	"scripts": {
-		"format": "prettier -w ."
-	},
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-your-module-name.git"
-	},
-	"dependencies": {
-		"@companion-module/base": "~1.0.1"
-	},
-	"devDependencies": {
-		"@companion-module/tools": "^0.5.1"
-	},
-	"prettier": "@companion-module/tools/.prettierrc.json"
+  "name": "voicemeeter-proxy",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "yarn build:watch",
+    "build": "rimraf dist && yarn build:main",
+    "build:main": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json --watch",
+    "lint": "eslint . --ext .ts --fix",
+    "test": "jest"
+  },
+  "lint-staged": {
+    "*.{js,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{ts}": [
+      "yarn lint --fix --",
+      "git add"
+    ]
+  },
+  "eslintIgnore": [
+    "/tests/*.test.ts"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@companion-module/base": "^1.1.1",
+    "@companion-module/tools": "^1.0.1",
+    "socket.io": "^4.6.0",
+    "socket.io-client": "^4.6.1",
+    "voicemeeter-connector": "https://github.com/thedist/voicemeeter-connector"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.13.0",
+    "@typescript-eslint/eslint-plugin": "^5.52.0",
+    "@typescript-eslint/parser": "^5.52.0",
+    "eslint": "^8.34.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.4.3",
+    "lint-staged": "^13.1.2",
+    "prettier": "^2.8.4",
+    "rimraf": "^4.1.2",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.5"
+  }
 }

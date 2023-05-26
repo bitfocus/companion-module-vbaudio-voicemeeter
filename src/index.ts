@@ -92,11 +92,12 @@ class VoicemeeterInstance extends InstanceBase<Config> {
             })
 
             this.bus.forEach((bus) => {
-              bus.levels[0] = connection.getLevel(1, bus.index * 8) as number
-              bus.levels[1] = connection.getLevel(1, bus.index * 8 + 1) as number
+              bus.levels[0] = connection.getLevel(3, bus.index * 8) as number
+              bus.levels[1] = connection.getLevel(3, bus.index * 8 + 1) as number
             })
 
             this.variables?.updateVariables()
+            this.checkFeedbacks()
           }, 100)
         })
         .catch((err) => {

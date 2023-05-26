@@ -1,6 +1,5 @@
 import VoicemeeterInstance from './index'
 import { getOptions } from './utils'
-
 import {
   combineRgb,
   CompanionAdvancedFeedbackResult,

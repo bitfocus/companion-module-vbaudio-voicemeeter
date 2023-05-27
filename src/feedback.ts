@@ -1,4 +1,5 @@
 import VoicemeeterInstance from './index'
+import { presets } from 'companion-module-utils'
 import { getOptions } from './utils'
 import {
   combineRgb,
@@ -255,6 +256,41 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
         return instance.bus[bus]?.eqAB === !!feedback.options.mode
       },
+    },
+
+    busMeters: {
+      type: 'advanced',
+      name: 'Bus - Meters',
+      description: 'Bus Volume Meters',
+      options: [{
+        type: 'dropdown',
+        label: 'Bus',
+        id: 'bus',
+        default: -1,
+        choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
+      }],
+      callback: (feedback) => {
+        const busId = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
+        const bus = instance.bus[busId]
+
+        if (!bus) return {}
+
+        const volumeToLinear = (volume: number): number => {
+          return Math.pow(volume / 100, 0.25) * 100
+        }
+
+        const meter = presets.meter1({
+          width: feedback.image.width,
+          height: feedback.image.height,
+          meter1: volumeToLinear(bus.levels[0] * 100),
+          meter2: volumeToLinear(bus.levels[1] * 100),
+          muted: bus.mute
+        })
+
+        return {
+          imageBuffer: meter
+        }
+      }
     },
 
     busMonitor: {
@@ -553,6 +589,47 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
         const strip = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
         return instance.strip[strip]?.mute
       },
+    },
+
+    stripMeters: {
+      type: 'advanced',
+      name: 'Strip - Meters',
+      description: 'Strip Volume Meters',
+      options: [{
+        type: 'dropdown',
+        label: 'Strip',
+        id: 'strip',
+        default: -1,
+        choices: [
+          ...instance.strip.map((strip, index) => ({
+            id: index,
+            label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+          })),
+          { id: -1, label: 'Selected' },
+        ],
+      }],
+      callback: (feedback) => {
+        const stripId = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
+        const strip = instance.strip[stripId]
+
+        if (!strip) return {}
+
+        const volumeToLinear = (volume: number): number => {
+          return Math.pow(volume / 100, 0.25) * 100
+        }
+
+        const meter = presets.meter1({
+          width: feedback.image.width,
+          height: feedback.image.height,
+          meter1: volumeToLinear(strip.levels[0] * 100),
+          meter2: volumeToLinear(strip.levels[1] * 100),
+          muted: strip.mute
+        })
+
+        return {
+          imageBuffer: meter
+        }
+      }
     },
 
     stripSolo: {

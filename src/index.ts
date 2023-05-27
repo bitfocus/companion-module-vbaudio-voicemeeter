@@ -87,13 +87,41 @@ class VoicemeeterInstance extends InstanceBase<Config> {
 
           this.levelsInterval = setInterval(() => {
             this.strip.forEach((strip) => {
-              strip.levels[0] = connection.getLevel(1, strip.index * 2) as number
-              strip.levels[1] = connection.getLevel(1, strip.index * 2 + 1) as number
+              let level0 = connection.getLevel(1, strip.index * 2) as number
+              let level1 = connection.getLevel(1, strip.index * 2 + 1) as number
+
+              // Buffer for momentary level drops to 0
+              if (level0 === 0 && level1 === 0 && (strip.levels[0] !== 0 && strip.levels[1] !== 0)) {
+                if (strip.levelsHold < 3) {
+                  strip.levelsHold++
+                  level0 = strip.levels[0]
+                  level1 = strip.levels[1]
+                } else {
+                  strip.levelsHold = 0
+                }
+              }
+
+              strip.levels[0] = level0
+              strip.levels[1] = level1
             })
 
             this.bus.forEach((bus) => {
-              bus.levels[0] = connection.getLevel(3, bus.index * 8) as number
-              bus.levels[1] = connection.getLevel(3, bus.index * 8 + 1) as number
+              let level0 = connection.getLevel(3, bus.index * 8) as number
+              let level1 = connection.getLevel(3, bus.index * 8 + 1) as number
+
+              // Buffer for momentary level drops to 0
+              if (level0 === 0 && level1 === 0 && (bus.levels[0] !== 0 && bus.levels[1] !== 0)) {
+                if (bus.levelsHold < 3) {
+                  bus.levelsHold++
+                  level0 = bus.levels[0]
+                  level1 = bus.levels[1]
+                } else {
+                  bus.levelsHold = 0
+                }
+              }
+
+              bus.levels[0] = level0
+              bus.levels[1] = level1
             })
 
             this.variables?.updateVariables()

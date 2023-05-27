@@ -19,6 +19,7 @@ export interface Bus {
   returnFx2: number
   monitor: 1 | 0
   levels: number[]
+  levelsHold: number
 }
 
 export type BusMode =
@@ -137,6 +138,7 @@ export interface Strip {
   eqon: boolean
   eqAB: 0 | 1
   levels: number[]
+  levelsHold: number
 }
 
 export interface ProxyConnection {
@@ -246,6 +248,7 @@ export const getAllData = (instance: VoicemeeterInstance) => {
       returnFx2: instance.connection?.getBusParameter(i, BusProperties.ReturnFx2),
       monitor: instance.connection?.getBusParameter(i, BusProperties.Monitor),
       levels: instance.bus[i]?.levels || [],
+      levelsHold: 0
     }
   }
 
@@ -316,6 +319,7 @@ export const getAllData = (instance: VoicemeeterInstance) => {
       eqon: instance.connection?.getStripParameter(i, StripProperties.EQon),
       eqAB: instance.connection?.getStripParameter(i, StripProperties.EQAB),
       levels: instance.strip[i]?.levels || [],
+      levelsHold: 0
     }
   }
 

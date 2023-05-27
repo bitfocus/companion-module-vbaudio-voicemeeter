@@ -58,7 +58,10 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @description triggered on instance being enabled
    */
   public async init(config: Config): Promise<void> {
-    this.log('info', 'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues ')
+    this.log(
+      'info',
+      'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues '
+    )
     await this.configUpdated(config)
 
     this.variables = new Variables(this)
@@ -92,7 +95,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
               let level1 = connection.getLevel(1, strip.index * 2 + 1) as number
 
               // Buffer for momentary level drops to 0
-              if (level0 === 0 && level1 === 0 && (strip.levels[0] !== 0 && strip.levels[1] !== 0)) {
+              if (level0 === 0 && level1 === 0 && strip.levels[0] !== 0 && strip.levels[1] !== 0) {
                 if (strip.levelsHold < 3) {
                   strip.levelsHold++
                   level0 = strip.levels[0]
@@ -111,7 +114,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
               let level1 = connection.getLevel(3, bus.index * 8 + 1) as number
 
               // Buffer for momentary level drops to 0
-              if (level0 === 0 && level1 === 0 && (bus.levels[0] !== 0 && bus.levels[1] !== 0)) {
+              if (level0 === 0 && level1 === 0 && bus.levels[0] !== 0 && bus.levels[1] !== 0) {
                 if (bus.levelsHold < 3) {
                   bus.levelsHold++
                   level0 = bus.levels[0]

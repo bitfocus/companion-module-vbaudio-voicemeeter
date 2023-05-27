@@ -262,13 +262,15 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       type: 'advanced',
       name: 'Bus - Meters',
       description: 'Bus Volume Meters',
-      options: [{
-        type: 'dropdown',
-        label: 'Bus',
-        id: 'bus',
-        default: -1,
-        choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
-      }],
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Bus',
+          id: 'bus',
+          default: -1,
+          choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
+        },
+      ],
       callback: (feedback) => {
         const busId = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
         const bus = instance.bus[busId]
@@ -284,13 +286,13 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           height: feedback.image.height,
           meter1: volumeToLinear(bus.levels[0] * 100),
           meter2: volumeToLinear(bus.levels[1] * 100),
-          muted: bus.mute
+          muted: bus.mute,
         })
 
         return {
-          imageBuffer: meter
+          imageBuffer: meter,
         }
-      }
+      },
     },
 
     busMonitor: {
@@ -595,19 +597,21 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       type: 'advanced',
       name: 'Strip - Meters',
       description: 'Strip Volume Meters',
-      options: [{
-        type: 'dropdown',
-        label: 'Strip',
-        id: 'strip',
-        default: -1,
-        choices: [
-          ...instance.strip.map((strip, index) => ({
-            id: index,
-            label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-          })),
-          { id: -1, label: 'Selected' },
-        ],
-      }],
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Strip',
+          id: 'strip',
+          default: -1,
+          choices: [
+            ...instance.strip.map((strip, index) => ({
+              id: index,
+              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            })),
+            { id: -1, label: 'Selected' },
+          ],
+        },
+      ],
       callback: (feedback) => {
         const stripId = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
         const strip = instance.strip[stripId]
@@ -623,13 +627,13 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           height: feedback.image.height,
           meter1: volumeToLinear(strip.levels[0] * 100),
           meter2: volumeToLinear(strip.levels[1] * 100),
-          muted: strip.mute
+          muted: strip.mute,
         })
 
         return {
-          imageBuffer: meter
+          imageBuffer: meter,
         }
-      }
+      },
     },
 
     stripSolo: {

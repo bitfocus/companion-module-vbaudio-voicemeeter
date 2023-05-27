@@ -248,7 +248,7 @@ export const getAllData = (instance: VoicemeeterInstance) => {
       returnFx2: instance.connection?.getBusParameter(i, BusProperties.ReturnFx2),
       monitor: instance.connection?.getBusParameter(i, BusProperties.Monitor),
       levels: instance.bus[i]?.levels || [],
-      levelsHold: 0
+      levelsHold: 0,
     }
   }
 
@@ -319,7 +319,7 @@ export const getAllData = (instance: VoicemeeterInstance) => {
       eqon: instance.connection?.getStripParameter(i, StripProperties.EQon),
       eqAB: instance.connection?.getStripParameter(i, StripProperties.EQAB),
       levels: instance.strip[i]?.levels || [],
-      levelsHold: 0
+      levelsHold: 0,
     }
   }
 

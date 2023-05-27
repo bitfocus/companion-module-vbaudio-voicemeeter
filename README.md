@@ -5,5 +5,8 @@ For a guide on setting up a proxy, refer to [HELP.mod](./companion/HELP.md)
 
 
 # Recent Patches
+**v1.1.0**
+- Added graphical meters for strip and bus volume
+
 **v1.0.0**
 - Initial release

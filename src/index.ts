@@ -103,6 +103,8 @@ class VoicemeeterInstance extends InstanceBase<Config> {
                 } else {
                   strip.levelsHold = 0
                 }
+              } else {
+                strip.levelsHold = 0
               }
 
               strip.levels[0] = level0
@@ -122,6 +124,8 @@ class VoicemeeterInstance extends InstanceBase<Config> {
                 } else {
                   bus.levelsHold = 0
                 }
+              } else {
+                bus.levelsHold = 0
               }
 
               bus.levels[0] = level0

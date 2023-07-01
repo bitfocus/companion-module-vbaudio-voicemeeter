@@ -284,7 +284,7 @@ interface RecorderLoadTrackCallback {
 interface RecorderStateCallback {
   actionId: 'recorderState'
   options: Readonly<{
-    type: 'Play' | 'Stop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
+    type: 'Play' | 'Stop' | 'PlayStop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
   }>
 }
 
@@ -897,6 +897,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [
             { id: 'Play', label: 'Play' },
             { id: 'Stop', label: 'Stop' },
+            { id: 'PlayStop', label: 'Toggle Play Stop' },
             { id: 'Record', label: 'Record' },
             { id: 'Goto', label: 'Restart' },
             { id: 'FastForward', label: 'FastForward' },
@@ -918,6 +919,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           )
         } else if (action.options.type === 'Goto') {
           instance.connection?.setRecorderParameter(RecorderProperties.GoTo, '00:00:00')
+        } else if (action.options.type === 'PlayStop') {
+          let actionType: 'Play' | 'Stop' = instance.recorder['play'] === 1 ? 'Stop' : 'Play'
+          instance.connection?.setRecorderParameter(RecorderProperties[actionType], 1)
         } else {
           instance.connection?.setRecorderParameter(RecorderProperties[action.options.type], 1)
         }

@@ -36,6 +36,7 @@ export interface VoicemeeterActions {
 interface RouteAudioCallback {
   actionId: 'routeAudio'
   options: Readonly<{
+    type: 'Toggle' | 'On' | 'Off'
     source: number
     destination: 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
   }>
@@ -928,6 +929,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       options: [
         {
           type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'Toggle',
+          choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+        },
+        {
+          type: 'dropdown',
           label: 'Source',
           id: 'source',
           default: '0',
@@ -957,15 +965,22 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (source === -1) return
 
         if (source === 8) {
+          let newValue = instance.recorder[action.options.destination] ? 0 : 1
+          if (action.options.type === 'On') newValue = 1
+          if (action.options.type === 'Off') newValue = 0
+
           instance.connection?.setRecorderParameter(
             RecorderProperties[action.options.destination],
-            instance.recorder[action.options.destination] ? 0 : 1
+            newValue
           )
         } else {
+          let newValue = instance.strip[source][action.options.destination] ? 0 : 1
+          if (action.options.type === 'On') newValue = 1
+          if (action.options.type === 'Off') newValue = 0
           instance.connection?.setStripParameter(
             source,
             StripProperties[action.options.destination],
-            instance.strip[source][action.options.destination] ? 0 : 1
+            newValue
           )
         }
       },

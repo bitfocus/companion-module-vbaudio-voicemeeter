@@ -874,14 +874,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         {
           type: 'textinput',
           label: 'Filepath',
-          id: 'path]',
+          id: 'path',
           default: '',
         },
       ],
       callback: async (action) => {
         const path = await instance.parseVariablesInString(action.options.path)
-
-        instance.connection?.setRecorderParameter(RecorderProperties.Load, path)
+        instance.connection?.setRecorderParameter(RecorderProperties.Load, '"' + path + '"')
       },
     },
 

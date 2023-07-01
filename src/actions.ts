@@ -844,7 +844,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         {
           type: 'textinput',
           label: 'Volume',
-          id: 'comp',
+          id: 'value',
           default: '1',
         },
       ],

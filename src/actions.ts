@@ -899,6 +899,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: 'PlayStop', label: 'Toggle Play Stop' },
             { id: 'Record', label: 'Record' },
             { id: 'Goto', label: 'Restart' },
+            { id: 'Rewind', label: 'Rewind' },
             { id: 'FastForward', label: 'FastForward' },
             { id: 'Loop', label: 'Toggle Loop' },
             { id: 'PlayOnLoad', label: 'Toggle Play-On-Load' },

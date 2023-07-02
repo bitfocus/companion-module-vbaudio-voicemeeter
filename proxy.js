@@ -201,7 +201,7 @@ const getAllData = () => {
     play: connection?.getRecorderParameter('play'),
     replay: connection?.getRecorderParameter('replay'),
     fastForward: connection?.getRecorderParameter('ff'),
-    rewind: connection?.getRecorderParameter('req'),
+    rewind: connection?.getRecorderParameter('rew'),
     goTo: connection?.getRecorderParameter('goto'),
     A1: connection?.getRecorderParameter('A1'),
     A2: connection?.getRecorderParameter('A2'),

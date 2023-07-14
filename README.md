@@ -6,11 +6,13 @@ For a guide on setting up a proxy, refer to [HELP.mod](./companion/HELP.md)
 
 # Recent Patches
 **V1.2.0**
-- Feature update and fixes created by @PI3RRE01
+- Some Feature update and fixes created by @PI3RRE01
 - Fixed recorder load, and gain, actions
 - Fixed issue when using proxy
 - Added Toggle/On/Off options for routing action
 - Added Toggle Play/Stop option for recorder
+- Fixed virtual audio strip meters
+- Improved performance of feedback checks
 
 **v1.1.1**
 - Improved build output

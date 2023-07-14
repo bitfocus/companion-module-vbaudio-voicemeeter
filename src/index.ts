@@ -90,9 +90,15 @@ class VoicemeeterInstance extends InstanceBase<Config> {
           })
 
           this.levelsInterval = setInterval(() => {
+            let stripChange = false
+            let busChange = false
+
+            let stripChannelID = 0
             this.strip.forEach((strip) => {
-              let level0 = connection.getLevel(1, strip.index * 2) as number
-              let level1 = connection.getLevel(1, strip.index * 2 + 1) as number
+              let level0 = connection.getLevel(1, stripChannelID) as number
+              let level1 = connection.getLevel(1, stripChannelID + 1) as number
+
+              stripChannelID += strip.type === 'physical' ? 2 : 8
 
               // Buffer for momentary level drops to 0
               if (level0 === 0 && level1 === 0 && strip.levels[0] !== 0 && strip.levels[1] !== 0) {
@@ -107,8 +113,11 @@ class VoicemeeterInstance extends InstanceBase<Config> {
                 strip.levelsHold = 0
               }
 
+              if (strip.levels[0] !== level0 || strip.levels[1] !== level1) stripChange = true
+
               strip.levels[0] = level0
               strip.levels[1] = level1
+
             })
 
             this.bus.forEach((bus) => {
@@ -128,12 +137,19 @@ class VoicemeeterInstance extends InstanceBase<Config> {
                 bus.levelsHold = 0
               }
 
+              if (bus.levels[0] !== level0 || bus.levels[1] !== level1) busChange = true
+
               bus.levels[0] = level0
               bus.levels[1] = level1
             })
 
-            this.variables?.updateVariables()
-            this.checkFeedbacks()
+            let feedbackChanges = []
+            if (stripChange) feedbackChanges.push('stripMeters')
+            if (busChange) feedbackChanges.push('busMeters')
+            if (stripChange || busChange) {
+              this.variables?.updateVariables()
+              this.checkFeedbacks(...feedbackChanges)
+            }
           }, 100)
         })
         .catch((err) => {

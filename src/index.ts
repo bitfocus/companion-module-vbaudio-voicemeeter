@@ -158,6 +158,10 @@ class VoicemeeterInstance extends InstanceBase<Config> {
         this.updateStatus(InstanceStatus.Disconnected)
       })
 
+      this.proxySocket.on('change', () => {
+        this.updateInstance()
+      })
+
       this.proxySocket.on('data', (data) => {
         this.connected = data.connected
         this.type = data.type

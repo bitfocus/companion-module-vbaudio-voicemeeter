@@ -201,7 +201,7 @@ const getAllData = () => {
     play: connection?.getRecorderParameter('play'),
     replay: connection?.getRecorderParameter('replay'),
     fastForward: connection?.getRecorderParameter('ff'),
-    rewind: connection?.getRecorderParameter('req'),
+    rewind: connection?.getRecorderParameter('rew'),
     goTo: connection?.getRecorderParameter('goto'),
     A1: connection?.getRecorderParameter('A1'),
     A2: connection?.getRecorderParameter('A2'),
@@ -274,6 +274,8 @@ const init = () => {
         data.version = parseVersion(vm.$version)
 
         getAllData()
+        io.emit('data', data)
+        io.emit('change')
       })
 
       levelsInterval = setInterval(() => {
@@ -290,6 +292,10 @@ const init = () => {
 io.on('connection', socket => {
   console.log('Socket Connected!')
   
+  getAllData()
+  io.emit('data', data)
+  io.emit('change')
+
   socket.on('getBusParameter', ({ index, property }) => {
     const value = connection?.getBusParameter(index, property);
     socket.emit('getBusParameter', { index, property, value });

@@ -113,7 +113,7 @@ interface RecorderArmInputOutputCallback {
 interface RecorderStateCallback {
   feedbackId: 'recorderState'
   options: Readonly<{
-    type: 'play' | 'stop' | 'record' | 'fastForward' | 'modeLoop'
+    type: 'play' | 'stop' | 'record' | 'rewind' | 'fastForward' | 'modeLoop'
   }>
 }
 
@@ -473,6 +473,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
             { id: 'play', label: 'Play' },
             { id: 'stop', label: 'Stop' },
             { id: 'record', label: 'Recording' },
+            { id: 'rewind', label: 'Rewind' },
             { id: 'fastForward', label: 'FastForward' },
             { id: 'modeLoop', label: 'Loop' },
           ],

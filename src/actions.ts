@@ -36,6 +36,7 @@ export interface VoicemeeterActions {
 interface RouteAudioCallback {
   actionId: 'routeAudio'
   options: Readonly<{
+    type: 'Toggle' | 'On' | 'Off'
     source: number
     destination: 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
   }>
@@ -71,20 +72,20 @@ interface BusModeCallback {
   actionId: 'busMode'
   options: Readonly<{
     mode:
-      | 'normal'
-      | 'Amix'
-      | 'Bmix'
-      | 'Repeat'
-      | 'Composite'
-      | 'TVMix'
-      | 'UpMix21'
-      | 'UpMix41'
-      | 'UpMix61'
-      | 'CenterOnly'
-      | 'LFEOnly'
-      | 'RearOnly'
-      | 'next'
-      | 'prev'
+    | 'normal'
+    | 'Amix'
+    | 'Bmix'
+    | 'Repeat'
+    | 'Composite'
+    | 'TVMix'
+    | 'UpMix21'
+    | 'UpMix41'
+    | 'UpMix61'
+    | 'CenterOnly'
+    | 'LFEOnly'
+    | 'RearOnly'
+    | 'next'
+    | 'prev'
     bus: number
   }>
 }
@@ -135,15 +136,15 @@ interface StripCompressorCallback {
   actionId: 'stripCompressor'
   options: Readonly<{
     setting:
-      | 'comp'
-      | 'compGainIn'
-      | 'compRatio'
-      | 'compThreshold'
-      | 'compAttack'
-      | 'compRelease'
-      | 'compKnee'
-      | 'compGainOut'
-      | 'compMakeUp'
+    | 'comp'
+    | 'compGainIn'
+    | 'compRatio'
+    | 'compThreshold'
+    | 'compAttack'
+    | 'compRelease'
+    | 'compKnee'
+    | 'compGainOut'
+    | 'compMakeUp'
     strip: number
     adjustment: 'Set' | 'Increase' | 'Decrease'
     comp: string
@@ -241,20 +242,20 @@ interface RecorderArmCallback {
   actionId: 'recorderArm'
   options: Readonly<{
     type:
-      | 'ArmBus0'
-      | 'ArmBus2'
-      | 'ArmBus3'
-      | 'ArmBus4'
-      | 'ArmBus5'
-      | 'ArmBus6'
-      | 'ArmBus7'
-      | 'ArmStrip0'
-      | 'ArmStrip2'
-      | 'ArmStrip3'
-      | 'ArmStrip4'
-      | 'ArmStrip5'
-      | 'ArmStrip6'
-      | 'ArmStrip7'
+    | 'ArmBus0'
+    | 'ArmBus2'
+    | 'ArmBus3'
+    | 'ArmBus4'
+    | 'ArmBus5'
+    | 'ArmBus6'
+    | 'ArmBus7'
+    | 'ArmStrip0'
+    | 'ArmStrip2'
+    | 'ArmStrip3'
+    | 'ArmStrip4'
+    | 'ArmStrip5'
+    | 'ArmStrip6'
+    | 'ArmStrip7'
   }>
 }
 
@@ -283,7 +284,7 @@ interface RecorderLoadTrackCallback {
 interface RecorderStateCallback {
   actionId: 'recorderState'
   options: Readonly<{
-    type: 'Play' | 'Stop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
+    type: 'Play' | 'Stop' | 'PlayStop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
   }>
 }
 
@@ -843,7 +844,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         {
           type: 'textinput',
           label: 'Volume',
-          id: 'comp',
+          id: 'value',
           default: '1',
         },
       ],
@@ -873,14 +874,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         {
           type: 'textinput',
           label: 'Filepath',
-          id: 'path]',
+          id: 'path',
           default: '',
         },
       ],
       callback: async (action) => {
         const path = await instance.parseVariablesInString(action.options.path)
 
-        instance.connection?.setRecorderParameter(RecorderProperties.Load, path)
+        instance.connection?.setRecorderParameter(RecorderProperties.Load, `"${path}"`)
       },
     },
 
@@ -896,8 +897,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [
             { id: 'Play', label: 'Play' },
             { id: 'Stop', label: 'Stop' },
+            { id: 'PlayStop', label: 'Toggle Play/Stop' },
             { id: 'Record', label: 'Record' },
             { id: 'Goto', label: 'Restart' },
+            { id: 'Rewind', label: 'Rewind' },
             { id: 'FastForward', label: 'FastForward' },
             { id: 'Loop', label: 'Toggle Loop' },
             { id: 'PlayOnLoad', label: 'Toggle Play-On-Load' },
@@ -917,6 +920,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           )
         } else if (action.options.type === 'Goto') {
           instance.connection?.setRecorderParameter(RecorderProperties.GoTo, '00:00:00')
+        } else if (action.options.type === 'PlayStop') {
+          let actionType: 'Play' | 'Stop' = instance.recorder['play'] === 1 ? 'Stop' : 'Play'
+          instance.connection?.setRecorderParameter(RecorderProperties[actionType], 1)
         } else {
           instance.connection?.setRecorderParameter(RecorderProperties[action.options.type], 1)
         }
@@ -926,6 +932,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
     routeAudio: {
       name: 'Route Audio',
       options: [
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'Toggle',
+          choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+        },
         {
           type: 'dropdown',
           label: 'Source',
@@ -957,15 +970,23 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (source === -1) return
 
         if (source === 8) {
+          let newValue = instance.recorder[action.options.destination] ? 0 : 1
+          if (action.options.type === 'On') newValue = 1
+          if (action.options.type === 'Off') newValue = 0
+
           instance.connection?.setRecorderParameter(
             RecorderProperties[action.options.destination],
-            instance.recorder[action.options.destination] ? 0 : 1
+            newValue
           )
         } else {
+          let newValue = instance.strip[source][action.options.destination] ? 0 : 1
+          if (action.options.type === 'On') newValue = 1
+          if (action.options.type === 'Off') newValue = 0
+
           instance.connection?.setStripParameter(
             source,
             StripProperties[action.options.destination],
-            instance.strip[source][action.options.destination] ? 0 : 1
+            newValue
           )
         }
       },

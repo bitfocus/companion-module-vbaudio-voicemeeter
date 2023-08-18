@@ -143,6 +143,11 @@ export interface Strip {
 
 export interface ProxyConnection {
   disconnect(): void
+  executeCommandAction(property: string, value: any): any
+  executeButtonAction(index: number, property: string, value: any): any
+  executeEqAction(index: number, property: string, value: any): any
+  getVMState(property: string): any
+  getButtonParameter(index: number, property: string): any
   getBusParameter(index: number, property: string): any
   getLevels(type: 0 | 1 | 2 | 3, id: number): any
   getRecorderParameter(property: string): any

@@ -58,6 +58,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @description triggered on instance being enabled
    */
   public async init(config: Config): Promise<void> {
+    this.log('debug', `Process ID: ${process.pid}`)
     this.log(
       'info',
       'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues '

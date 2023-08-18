@@ -13,6 +13,7 @@ export interface VoicemeeterActions {
   busMute: VoicemeeterAction<BusMuteCallback>
   busReturns: VoicemeeterAction<BusReturnsCallback>
   busSel: VoicemeeterAction<BusSelCallback>
+  commandActions: VoicemeeterAction<CommandActionsCallback>
   recorderArm: VoicemeeterAction<RecorderArmCallback>
   recorderArmInputOutput: VoicemeeterAction<RecorderArmInputOutputCallback>
   recorderGain: VoicemeeterAction<RecorderGainCallback>
@@ -129,6 +130,16 @@ interface BusSelCallback {
   options: Readonly<{
     bus: number
     type: 'Toggle' | 'On' | 'Off'
+  }>
+}
+
+interface CommandActionsCallback {
+  actionId: 'commandActions'
+  options: Readonly<{
+    command: 'Default' | 'Shutdown' | 'Show' | 'Restart' | 'Eject' | 'Reset' | 'Save' | 'Load' | 'Lock'
+    show: 'Show' | 'Hide'
+    path: string
+    lock: 'Lock' | 'Unlock'
   }>
 }
 
@@ -312,6 +323,7 @@ export type ActionCallbacks =
   | BusMonitorCallback
   | BusReturnsCallback
   | BusSelCallback
+  | CommandActionsCallback
   | RecorderArmCallback
   | RecorderArmInputOutputCallback
   | RecorderGainCallback
@@ -766,6 +778,81 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         if ((instance.bus[bus].sel ? 1 : 0) !== value) {
           instance.connection?.setBusParameter(bus, BusProperties.Sel, value)
+        }
+      },
+    },
+
+    commandActions: {
+      name: 'Command Actions',
+      description: 'Execute Voicemeeter commands',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Command',
+          id: 'command',
+          default: 'Default',
+          choices: [
+            { id: 'Default', label: '-- Select Command --' },
+            { id: 'Shutdown', label: 'Shutdown Voicemeeter' },
+            { id: 'Show', label: 'Show / Hide Voicemeeter' },
+            { id: 'Restart', label: 'Restart Audio Engine' },
+            { id: 'Eject', label: 'Eject Cassette' },
+            { id: 'Reset', label: 'Reset All configuration' },
+            { id: 'Save', label: 'Save Complete filename (xml)' },
+            { id: 'Load', label: 'Load Complete filename (xml)' },
+            { id: 'Lock', label: 'Lock / Unlock Voicemeeter' },
+          ]
+        },
+        {
+          type: 'dropdown',
+          label: 'Show / Hide',
+          id: 'show',
+          default: '1',
+          choices: [
+            { id: '1', label: 'Show' },
+            { id: '0', label: 'Hide' },
+          ],
+          isVisible: (options) => options.command === 'Show'
+        },
+        {
+          type: 'textinput',
+          label: '',
+          id: 'path',
+          default: '',
+          isVisible: (options) => options.command === 'Save' || options.command === 'Load'
+        },
+        {
+          type: 'dropdown',
+          label: 'Lock / Unlock',
+          id: 'lock',
+          default: '1',
+          choices: [
+            { id: '1', label: 'Lock' },
+            { id: '0', label: 'Unlock' },
+          ],
+          isVisible: (options) => options.command === 'Lock'
+        },
+      ],
+      callback: (action) => {
+        const command: any = action.options.command
+
+        if (command === 'Default') {
+          return
+        } else if (command === 'Show') {
+          instance.connection?.executeCommandAction(command, action.options.show)
+        } else if (command === 'Save' || command === 'Load') {
+          let path = action.options.path
+          if (path === '') return
+          
+          if (path.includes(' ') && !(path.startsWith('"') && path.endsWith('"'))) {
+            path = `"${[path]}"`
+          }
+
+          instance.connection?.executeCommandAction(command, path)
+        } else if (command === 'Lock') {
+          instance.connection?.executeCommandAction(command, action.options.lock)
+        } else {
+          instance.connection?.executeCommandAction(command, 1)
         }
       },
     },

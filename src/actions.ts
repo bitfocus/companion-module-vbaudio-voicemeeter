@@ -102,7 +102,7 @@ interface BusMonoCallback {
 interface BusMuteCallback {
   actionId: 'busMute'
   options: Readonly<{
-    type: 'Toggle' | 'On' | 'Off'
+    type: 'Toggle' | 'Mute' | 'Unmute'
     bus: number
   }>
 }
@@ -236,7 +236,7 @@ interface StripMonoCallback {
 interface StripMuteCallback {
   actionId: 'stripMute'
   options: Readonly<{
-    type: 'Toggle' | 'On' | 'Off'
+    type: 'Toggle' | 'Mute' | 'Unmute'
     strip: number
   }>
 }
@@ -666,12 +666,12 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.bus[bus]) return
 
-        let value = action.options.type === 'On' ? 1 : 0
+        let value = action.options.type === 'Mute' ? 1 : 0
 
         if (action.options.type === 'Toggle') {
           value = instance.bus[bus].mute ? 0 : 1
         }
-
+        console.log(instance.bus[bus].mute, action.options.type, value)
         instance.connection?.setBusParameter(bus, BusProperties.Mute, value)
       },
     },
@@ -1613,7 +1613,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Type',
           id: 'type',
           default: 'Toggle',
-          choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+          choices: ['Toggle', 'Mute', 'Unmute'].map((type) => ({ id: type, label: type })),
         },
         {
           type: 'dropdown',
@@ -1632,7 +1632,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
-        let value = action.options.type === 'On' ? 1 : 0
+        let value = action.options.type === 'Mute' ? 1 : 0
 
         if (action.options.type === 'Toggle') {
           value = instance.strip[strip].mute ? 0 : 1

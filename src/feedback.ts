@@ -281,6 +281,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           return Math.pow(volume / 100, 0.25) * 100
         }
 
+
         const meter = presets.meter1({
           width: feedback.image.width,
           height: feedback.image.height,
@@ -369,7 +370,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
         bgcolor: combineRgb(255, 0, 0),
       },
       callback: (feedback): boolean => {
-        const bus = feedback.options.bus === -1 ? instance.selectedStrip : feedback.options.bus
+        const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
         return instance.bus[bus]?.mute
       },
     },

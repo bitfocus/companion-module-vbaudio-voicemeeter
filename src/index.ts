@@ -39,6 +39,8 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   public selectedBus = -1
   public selectedStrip = -1
   public type: VoicemeeterType = ''
+  private updateNeeded: boolean = false
+  private updateHold: NodeJS.Timer | null = null
   public version = ''
   private levelsInterval: NodeJS.Timer | null = null
 
@@ -86,8 +88,22 @@ class VoicemeeterInstance extends InstanceBase<Config> {
           this.updateData()
 
           connection.attachChangeEvent(() => {
-            this.updateData()
-            this.checkFeedbacks()
+            if (this.updateHold === null) {
+              this.updateData()
+              this.checkFeedbacks()
+
+              this.updateHold = setTimeout(() => {
+                if (this.updateNeeded) {
+                  this.updateData()
+                  this.checkFeedbacks()
+                }
+
+                this.updateHold = null
+                this.updateNeeded = false
+              }, 100)
+            } else {
+              this.updateNeeded = true
+            }
           })
 
           this.levelsInterval = setInterval(() => {
@@ -252,6 +268,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   public async destroy(): Promise<void> {
     if (this.connection) this.connection.disconnect()
     if (this.levelsInterval) clearInterval(this.levelsInterval)
+    if (this.updateHold) clearTimeout(this.updateHold)
     this.log('debug', `Instance destroyed: ${this.id}`)
   }
 

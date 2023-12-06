@@ -10,6 +10,9 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**V1.2.1**
+- Added node-gyp dependency
+
 **V1.2.0**
 - Some Feature update and fixes contributed by @PI3RRE01
 - Fixed recorder load, and gain, actions

@@ -1,5 +1,5 @@
 import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
-import { BusProperties, RecorderProperties, StripProperties } from 'voicemeeter-connector'
+import { BusProperties, CommandButtons, RecorderProperties, StripProperties, VBANInstream, VBANOutstream } from 'voicemeeter-connector'
 import VoicemeeterInstance from './index'
 import { BusMode, getOptions } from './utils'
 
@@ -27,6 +27,9 @@ export interface VoicemeeterActions {
   stripMono: VoicemeeterAction<StripMonoCallback>
   stripMute: VoicemeeterAction<StripMuteCallback>
   stripSolo: VoicemeeterAction<StripSoloCallback>
+  vbanSettings: VoicemeeterAction<VbanSettingsCallback>
+  macroButton: VoicemeeterAction<MacroButtonCallback>
+  rawCommand: VoicemeeterAction<RawCommandCallback>
   utilSelectBus: VoicemeeterAction<UtilSelectBusCallback>
   utilSelectStrip: VoicemeeterAction<UtilSelectStripCallback>
 
@@ -299,6 +302,42 @@ interface RecorderStateCallback {
   }>
 }
 
+interface VbanSettingsCallback {
+  actionId: 'vbanSettings'
+  options: Readonly<{
+    type: 'vban' | 'instream' | 'outstream'
+    index: string
+    inProperty: 'on' | 'name' | 'ip' | 'port' | 'quality' | 'route'
+    outProperty: 'on' | 'name' | 'ip' | 'port' | 'sr' | 'channel' | 'bit' | 'quality' | 'route'
+    adjustment: 'Toggle' | 'On' | 'Off'
+    name: string
+    ip: string
+    port: string
+    sr: '11025' | '16000' | '22050' | '24000' | '32000' | '44100' | '48000' | '64000' | '88200' | '96000'
+    channel: string
+    bit: '1' | '2'
+    quality: '0' | '1' | '2' | '3' | '4'
+    route: string
+  }>
+}
+
+interface MacroButtonCallback {
+  actionId: 'macroButton'
+  options: Readonly<{
+    id: string
+    type: 'state' | 'stateOnly' | 'trigger' | 'color'
+    state: boolean
+    color: string
+  }>
+}
+
+interface RawCommandCallback {
+  actionId: 'rawCommand'
+  options: Readonly<{
+    command: string
+  }>
+}
+
 interface UtilSelectBusCallback {
   actionId: 'utilSelectBus'
   options: Readonly<{
@@ -337,6 +376,9 @@ export type ActionCallbacks =
   | StripMonoCallback
   | StripMuteCallback
   | StripSoloCallback
+  | VbanSettingsCallback
+  | MacroButtonCallback
+  | RawCommandCallback
   | UtilSelectBusCallback
   | UtilSelectStripCallback
 
@@ -671,7 +713,6 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'Toggle') {
           value = instance.bus[bus].mute ? 0 : 1
         }
-        console.log(instance.bus[bus].mute, action.options.type, value)
         instance.connection?.setBusParameter(bus, BusProperties.Mute, value)
       },
     },
@@ -843,7 +884,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         } else if (command === 'Save' || command === 'Load') {
           let path = action.options.path
           if (path === '') return
-          
+
           if (path.includes(' ') && !(path.startsWith('"') && path.endsWith('"'))) {
             path = `"${[path]}"`
           }
@@ -1680,6 +1721,319 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       },
     },
 
+    vbanSettings: {
+      name: 'VBAN Settings',
+      description: 'Control various settings of VBAN and each In/Out stream',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'vban',
+          choices: [
+            { id: 'vban', label: 'VBAN' },
+            { id: 'instream', label: 'VBAN Incoming Stream' },
+            { id: 'outstream', label: 'VBAN Outgoing Stream' },
+          ]
+        },
+        {
+          type: 'textinput',
+          label: 'Stream Index (0 to 7)',
+          id: 'index',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => options.type === 'instream' || options.type === 'outstream'
+        },
+        {
+          type: 'dropdown',
+          label: 'Property',
+          id: 'inProperty',
+          default: 'on',
+          choices: [
+            { id: 'on', label: 'On/Off' },
+            { id: 'name', label: 'Name' },
+            { id: 'ip', label: 'IP' },
+            { id: 'port', label: 'Port' },
+            { id: 'quality', label: 'Quality' },
+            { id: 'route', label: 'Route' },
+          ],
+          isVisible: (options) => {
+            return options.type === 'instream'
+          }
+        },
+        {
+          type: 'dropdown',
+          label: 'Property',
+          id: 'outProperty',
+          default: 'on',
+          choices: [
+            { id: 'on', label: 'On/Off' },
+            { id: 'name', label: 'Name' },
+            { id: 'ip', label: 'IP' },
+            { id: 'port', label: 'Port' },
+            { id: 'sr', label: 'Sample Rate' },
+            { id: 'channel', label: 'Channel' },
+            { id: 'bit', label: 'Data Type' },
+            { id: 'quality', label: 'Quality' },
+            { id: 'route', label: 'Route' },
+          ],
+          isVisible: (options) => {
+            return options.type === 'outstream'
+          }
+        },
+        {
+          type: 'dropdown',
+          label: 'Toggle/On/Off',
+          id: 'adjustment',
+          default: 'Toggle',
+          choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+          isVisible: (options) => {
+            return options.type === 'vban' || (options.type === 'instream' && options.inProperty === 'on') || (options.type === 'outstream' && options.outProperty === 'on')
+          }
+        },
+        {
+          type: 'textinput',
+          label: 'Stream Name',
+          id: 'name',
+          default: 'StreamX',
+          useVariables: true,
+          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'name') || (options.type === 'outstream' && options.outProperty === 'name')
+        },
+        {
+          type: 'textinput',
+          label: 'IP',
+          id: 'ip',
+          default: '0.0.0.0',
+          useVariables: true,
+          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'ip') || (options.type === 'outstream' && options.outProperty === 'ip')
+        },
+        {
+          type: 'textinput',
+          label: 'Port',
+          id: 'port',
+          default: '6980',
+          useVariables: true,
+          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'port') || (options.type === 'outstream' && options.outProperty === 'port')
+        },
+        {
+          type: 'dropdown',
+          label: 'Sample Rate',
+          id: 'sr',
+          default: '11025',
+          choices: [
+            { id: '11025', label: '11025 Hz' },
+            { id: '16000', label: '16000 Hz' },
+            { id: '22050', label: '22050 Hz' },
+            { id: '24000', label: '24000 Hz' },
+            { id: '32000', label: '32000 Hz' },
+            { id: '44100', label: '44100 Hz' },
+            { id: '48000', label: '48000 Hz' },
+            { id: '64000', label: '64000 Hz' },
+            { id: '88200', label: '88200 Hz' },
+            { id: '96000', label: '96000 Hz' },
+          ],
+          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'sr'
+        },
+        {
+          type: 'textinput',
+          label: 'Channel (1 to 8)',
+          id: 'channel',
+          default: '2',
+          useVariables: true,
+          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'channel'
+        },
+        {
+          type: 'dropdown',
+          label: 'Bit Resolution / Data Format',
+          id: 'bit',
+          default: '1',
+          choices: [
+            { id: '1', label: '16 bit PCM' },
+            { id: '2', label: '24 bit PCM' },
+          ],
+          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'bit'
+        },
+        {
+          type: 'dropdown',
+          label: 'Quality',
+          id: 'quality',
+          default: '0',
+          choices: [
+            { id: '0', label: 'Optimal' },
+            { id: '1', label: 'Fast' },
+            { id: '2', label: 'Medium' },
+            { id: '3', label: 'Slow' },
+            { id: '4', label: 'Very Slow' },
+          ],
+          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'quality') || (options.type === 'outstream' && options.outProperty === 'quality')
+        },
+        {
+          type: 'textinput',
+          label: 'Strip/Bus (0 to 8)',
+          id: 'route',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'route') || (options.type === 'outstream' && options.outProperty === 'route')
+        },
+      ],
+      callback: async (action) => {
+        if (action.options.type === 'vban') {
+          let state = instance.connection?.getVBANParameter()
+          let adjustment = state === 0 ? 1 : 0
+          if (action.options.adjustment === 'On') adjustment = 1
+          if (action.options.adjustment === 'Off') adjustment = 0
+
+          if (state !== adjustment) instance.connection?.setVBANParameter(adjustment)
+        } else {
+          let index: number | string = await instance.parseVariablesInString(action.options.index)
+          index = parseInt(index, 10)
+
+          if (isNaN(index)) {
+            instance.log('warn', `VBAN Settings must have a valid index (0 to 7)`)
+            return
+          }
+
+          if (action.options.type === 'instream') {
+            if (action.options.inProperty === 'on') {
+              let state = instance.connection?.getVBANInstreamParameter(index, VBANInstream.On)
+              let adjustment = state === 0 ? 1 : 0
+              if (action.options.adjustment === 'On') adjustment = 1
+              if (action.options.adjustment === 'Off') adjustment = 0
+              if (state !== adjustment) instance.connection?.setVBANInstreamParameter(index, VBANInstream.On, adjustment)
+            } else if (action.options.inProperty === 'name') {
+              let value = await instance.parseVariablesInString(action.options.name)
+              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Name, value)
+            } else if (action.options.inProperty === 'ip') {
+              let value = await instance.parseVariablesInString(action.options.ip)
+              instance.connection?.setVBANInstreamParameter(index, VBANInstream.IP, value)
+            } else if (action.options.inProperty === 'port') {
+              let value = await instance.parseVariablesInString(action.options.port)
+              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Port, value)
+            } else if (action.options.inProperty === 'quality') {
+              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Quality, action.options.quality)
+            } else if (action.options.inProperty === 'route') {
+              let value = await instance.parseVariablesInString(action.options.route)
+              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Route, value)
+            }
+          } else {
+            if (action.options.outProperty === 'on') {
+              let state = instance.connection?.getVBANOutstreamParameter(index, VBANOutstream.On)
+              let adjustment = state === 0 ? 1 : 0
+              if (action.options.adjustment === 'On') adjustment = 1
+              if (action.options.adjustment === 'Off') adjustment = 0
+              if (state !== adjustment) instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.On, adjustment)
+            } else if (action.options.outProperty === 'name') {
+              let value = await instance.parseVariablesInString(action.options.name)
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Name, value)
+            } else if (action.options.outProperty === 'ip') {
+              let value = await instance.parseVariablesInString(action.options.ip)
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.IP, value)
+            } else if (action.options.outProperty === 'port') {
+              let value = await instance.parseVariablesInString(action.options.port)
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Port, value)
+            } else if (action.options.outProperty === 'sr') {
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.SR, action.options.sr)
+            } else if (action.options.outProperty === 'channel') {
+              let value = await instance.parseVariablesInString(action.options.channel)
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Channel, value)
+            } else if (action.options.outProperty === 'bit') {
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Bit, action.options.bit)
+            } else if (action.options.outProperty === 'quality') {
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Quality, action.options.quality)
+            } else if (action.options.outProperty === 'route') {
+              let value = await instance.parseVariablesInString(action.options.route)
+              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Route, value)
+            }
+          }
+
+        }
+      }
+    },
+
+    macroButton: {
+      name: 'Macro Button',
+      description: '',
+      options: [
+        {
+          type: 'textinput',
+          label: 'Button ID (0 based index)',
+          id: 'id',
+          default: '0',
+          useVariables: true,
+        },
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'state',
+          choices: [
+            { id: 'state', label: 'Macro Button State' },
+            { id: 'stateOnly', label: 'Change button state only' },
+            { id: 'trigger', label: 'Trigger State' },
+            { id: 'color', label: 'Color' },
+          ]
+        },
+        {
+          type: 'checkbox',
+          label: 'State',
+          id: 'state',
+          default: false,
+          isVisible: (options) => options.type !== 'color'
+        },
+        {
+          type: 'textinput',
+          label: 'Color (0 to 8)',
+          id: 'color',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => options.type === 'color'
+        },
+      ],
+      callback: async (action) => {
+        let id: number | string = await instance.parseVariablesInString(action.options.id)
+        id = parseInt(id, 10)
+
+        if (isNaN(id)) {
+          instance.log('warn', 'Macro Button id must be a number')
+          return
+        }
+
+        const value = action.options.state ? 1 : 0
+
+        if (action.options.type === 'state') {
+          instance.connection?.executeButtonAction(id, CommandButtons.State, value)
+        } else if (action.options.type === 'stateOnly') {
+          instance.connection?.executeButtonAction(id, CommandButtons.StateOnly, value)
+        } else if (action.options.type === 'trigger') {
+          instance.connection?.executeButtonAction(id, CommandButtons.Trigger, value)
+        } else {
+          const color = await instance.parseVariablesInString(action.options.color)
+          let colorTest = parseInt(color, 10)
+          if (isNaN(colorTest) || colorTest < 0 || colorTest > 8) {
+            instance.log('warn', 'Macro Button Color value must be a number 0 to 8')
+            return
+          }
+          instance.connection?.executeButtonAction(id, CommandButtons.Color, color)
+        }
+      }
+    },
+
+    rawCommand: {
+      name: 'Send Raw Command',
+      description: `Send a raw command to Voicemeeter`,
+      options: [{
+        type: 'textinput',
+        label: 'Command',
+        id: 'command',
+        default: '',
+        useVariables: true
+      }],
+      callback: async (action) => {
+        let command = await instance.parseVariablesInString(action.options.command)
+        instance.connection?.setRaw(command)
+      }
+    },
+
     utilSelectBus: {
       name: 'Util - Select Bus',
       description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
@@ -1711,6 +2065,6 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         instance.checkFeedbacks('utilSelectedStrip', 'routing')
         instance.variables?.updateVariables()
       },
-    },
+    }
   }
 }

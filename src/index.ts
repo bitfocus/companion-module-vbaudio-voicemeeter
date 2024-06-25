@@ -15,7 +15,7 @@ import { getFeedbacks } from './feedback'
 import { httpHandler } from './http'
 import { getPresets } from './presets'
 import { getUpgrades } from './upgrade'
-import { Bus, Strip, ProxyConnection, getAllData, parseVersion, VoicemeeterType } from './utils'
+import { Bus, Strip, ProxyConnection, getAllData, parseVersion, VBAN, VoicemeeterType } from './utils'
 import { Variables } from './variables'
 
 interface Device {
@@ -41,6 +41,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   public type: VoicemeeterType = ''
   private updateNeeded: boolean = false
   private updateHold: NodeJS.Timer | null = null
+  public vban: VBAN = { on: 0, instream: [], outstream: [] }
   public version = ''
   private levelsInterval: NodeJS.Timer | null = null
 

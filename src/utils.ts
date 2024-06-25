@@ -1,5 +1,5 @@
 import { CompanionInputFieldDropdown } from '@companion-module/base'
-import { BusProperties, StripProperties, RecorderProperties } from 'voicemeeter-connector'
+import { BusProperties, StripProperties, RecorderProperties, VBANInstream, VBANOutstream } from 'voicemeeter-connector'
 import VoicemeeterInstance from './'
 
 export interface Bus {
@@ -141,6 +141,36 @@ export interface Strip {
   levelsHold: number
 }
 
+export interface VBAN {
+  on: number
+  instream: VBANInstream[]
+  outstream: VBANOutstream[]
+}
+
+interface VBANInstream {
+  on: number
+  name: number
+  ip: number
+  port: number
+  sr: number
+  channel: number
+  bit: number
+  quality: number
+  route: number
+}
+
+interface VBANOutstream {
+  on: number
+  name: number
+  ip: number
+  port: number
+  sr: number
+  channel: number
+  bit: number
+  quality: number
+  route: number
+}
+
 export interface ProxyConnection {
   disconnect(): void
   executeCommandAction(property: string, value: any): any
@@ -152,9 +182,16 @@ export interface ProxyConnection {
   getLevels(type: 0 | 1 | 2 | 3, id: number): any
   getRecorderParameter(property: string): any
   getStripParameter(index: number, property: string): any
+  getVBANParameter(): any
+  getVBANInstreamParameter(index: number, property: string): any
+  getVBANOutstreamParameter(index: number, property: string): any
   setBusParameter(index: number, property: string, value: any): any
   setRecorderParameter(property: string, value: any): any
   setStripParameter(index: number, property: string, value: any): any
+  setVBANParameter(value: any): any
+  setVBANInstreamParameter(index: number, property: string, value: any): any
+  setVBANOutstreamParameter(index: number, property: string, value: any): any
+  setRaw(value: string): any
   updateDeviceList(): void
   $inputDevices: []
   $outputDevices: []
@@ -373,6 +410,36 @@ export const getAllData = (instance: VoicemeeterInstance) => {
     kbps: instance.connection?.getRecorderParameter(RecorderProperties.KBPS),
     fileType: instance.connection?.getRecorderParameter(RecorderProperties.FileType),
     gain: instance.connection?.getRecorderParameter(RecorderProperties.Gain),
+  }
+
+  instance.vban.on = instance.connection?.getVBANParameter()
+  for (let i = 0; i < 8; i++) {
+    const instream: VBANInstream = {
+      on: instance.connection?.getVBANInstreamParameter(i, VBANInstream.On),
+      name: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Name),
+      ip: instance.connection?.getVBANInstreamParameter(i, VBANInstream.IP),
+      port: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Port),
+      sr: instance.connection?.getVBANInstreamParameter(i, VBANInstream.SR),
+      channel: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Channel),
+      bit: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Bit),
+      quality: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Quality),
+      route: instance.connection?.getVBANInstreamParameter(i, VBANInstream.Route),
+    }
+
+    const outstream: VBANOutstream = {
+      on: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.On),
+      name: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Name),
+      ip: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.IP),
+      port: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Port),
+      sr: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.SR),
+      channel: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Channel),
+      bit: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Bit),
+      quality: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Quality),
+      route: instance.connection?.getVBANOutstreamParameter(i, VBANOutstream.Route),
+    }
+
+    instance.vban.instream[i] = instream
+    instance.vban.outstream[i] = outstream
   }
 }
 

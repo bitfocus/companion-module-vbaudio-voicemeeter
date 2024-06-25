@@ -25,6 +25,7 @@ export interface VoicemeeterFeedbacks {
   stripMono: VoicemeeterFeedback<StripMonoCallback>
   stripMute: VoicemeeterFeedback<StripMuteCallback>
   stripSolo: VoicemeeterFeedback<StripSoloCallback>
+  vban: VoicemeeterFeedback<VbanCallback>
   utilSelectedBus: VoicemeeterFeedback<UtilSelectedBusCallback>
   utilSelectedStrip: VoicemeeterFeedback<UtilSelectedStripCallback>
 
@@ -127,6 +128,16 @@ interface RoutingCallback {
 
 type RoutingDestination = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
 
+interface VbanCallback {
+  feedbackId: 'vban'
+  options: Readonly<{
+    type: 'vban' | 'instream' | 'outstream'
+    index: string
+    property: 'on' | 'route'
+    route: string
+  }>
+}
+
 interface UtilSelectedBusCallback {
   feedbackId: 'utilSelectedBus'
   options: Readonly<{
@@ -156,6 +167,7 @@ export type FeedbackCallbacks =
   | StripMonoCallback
   | StripMuteCallback
   | StripSoloCallback
+  | VbanCallback
   | UtilSelectedBusCallback
   | UtilSelectedStripCallback
 
@@ -666,6 +678,80 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
         const strip = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
         return instance.strip[strip]?.solo
       },
+    },
+
+    vban: {
+      type: 'boolean',
+      name: 'VBAN',
+      description: 'Indicate the VBAN, or VBAN Stream, state',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'vban',
+          choices: [
+            { id: 'vban', label: 'VBAN' },
+            { id: 'instream', label: 'VBAN Incoming Stream' },
+            { id: 'outstream', label: 'VBAN Outgoing Stream' },
+          ]
+        },
+        {
+          type: 'textinput',
+          label: 'Stream Index (0 to 7)',
+          id: 'index',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => options.type !== 'vban'
+        },
+        {
+          type: 'dropdown',
+          label: 'Property',
+          id: 'property',
+          default: 'on',
+          choices: [
+            { id: 'on', label: 'On/Off' },
+            { id: 'route', label: 'Route' },
+          ],
+          isVisible: (options) => {
+            return options.type !== 'vban'
+          }
+        },
+        {
+          type: 'textinput',
+          label: 'Strip/Bus (0 to 8)',
+          id: 'route',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => options.type !== 'vban' && options.property === 'route'
+        },
+      ],
+      defaultStyle: {
+        color: combineRgb(0, 0, 0),
+        bgcolor: combineRgb(0, 255, 0),
+      },
+      callback: async (feedback) => {
+        if (feedback.options.type === 'vban') {
+          return instance.vban.on === 1
+        } else {
+          let index: number | string = await instance.parseVariablesInString(feedback.options.index)
+          index = parseInt(index, 10)
+
+          if (isNaN(index)) {
+            instance.log('warn', `VBAN streams must have a valid index (0 to 7)`)
+            return false
+          }
+
+          if (feedback.options.property === 'on') {
+            return instance.vban[feedback.options.type][index]?.on === 1
+          } else {
+            let route: number | string = await instance.parseVariablesInString(feedback.options.route)
+            route = parseInt(route, 10)
+
+            return instance.vban[feedback.options.type][index]?.route === route
+          }
+        }
+      }
     },
 
     utilSelectedBus: {

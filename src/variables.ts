@@ -148,6 +148,29 @@ export class Variables {
       variables.add({ name: `Strip ${name} Post FX 2`, variableId: `strip_${name.toLowerCase()}_post_fx2` })
     }
 
+    variables.add({ name: 'VBAN On/Off', variableId: 'vban_on' })
+    for (let i = 0; i < 8; i++) {
+      variables.add({ name: `VBAN Instream ${i} On/Off`, variableId: `vban_instream_${i}_on` })
+      variables.add({ name: `VBAN Instream ${i} Name`, variableId: `vban_instream_${i}_name` })
+      variables.add({ name: `VBAN Instream ${i} IP`, variableId: `vban_instream_${i}_ip` })
+      variables.add({ name: `VBAN Instream ${i} Port`, variableId: `vban_instream_${i}_port` })
+      variables.add({ name: `VBAN Instream ${i} Sample Rate`, variableId: `vban_instream_${i}_sr` })
+      variables.add({ name: `VBAN Instream ${i} Channel`, variableId: `vban_instream_${i}_channel` })
+      variables.add({ name: `VBAN Instream ${i} Bit`, variableId: `vban_instream_${i}_bit` })
+      variables.add({ name: `VBAN Instream ${i} Quality`, variableId: `vban_instream_${i}_quality` })
+      variables.add({ name: `VBAN Instream ${i} Route`, variableId: `vban_instream_${i}_route` })
+
+      variables.add({ name: `VBAN Outstream ${i} On/Off`, variableId: `vban_outstream_${i}_on` })
+      variables.add({ name: `VBAN Outstream ${i} Name`, variableId: `vban_outstream_${i}_name` })
+      variables.add({ name: `VBAN Outstream ${i} IP`, variableId: `vban_outstream_${i}_ip` })
+      variables.add({ name: `VBAN Outstream ${i} Port`, variableId: `vban_outstream_${i}_port` })
+      variables.add({ name: `VBAN Outstream ${i} Sample Rate`, variableId: `vban_outstream_${i}_sr` })
+      variables.add({ name: `VBAN Outstream ${i} Channel`, variableId: `vban_outstream_${i}_channel` })
+      variables.add({ name: `VBAN Outstream ${i} Bit`, variableId: `vban_outstream_${i}_bit` })
+      variables.add({ name: `VBAN Outstream ${i} Quality`, variableId: `vban_outstream_${i}_quality` })
+      variables.add({ name: `VBAN Outstream ${i} Route`, variableId: `vban_outstream_${i}_route` })
+    }
+
     //this.currentDefinitions = new Set(variables)
 
     this.instance.setVariableDefinitions([...variables])
@@ -241,6 +264,32 @@ export class Variables {
       newVariables[`strip_${i + 1}_post_delay`] = this.instance.strip[i]?.postDelay.toString()
       newVariables[`strip_${i + 1}_post_fx1`] = this.instance.strip[i]?.postFx1.toString()
       newVariables[`strip_${i + 1}_post_fx2`] = this.instance.strip[i]?.postFx2.toString()
+    }
+
+    newVariables[`vban_on`] = this.instance.vban.on
+    for (let i = 0; i < 8; i++) {
+      if (this.instance.vban.instream[i]) {
+        newVariables[`vban_instream_${i}_on`] = this.instance.vban.instream[i].on
+        newVariables[`vban_instream_${i}_name`] = this.instance.vban.instream[i].name
+        newVariables[`vban_instream_${i}_ip`] = this.instance.vban.instream[i].ip
+        newVariables[`vban_instream_${i}_port`] = this.instance.vban.instream[i].port
+        newVariables[`vban_instream_${i}_sr`] = this.instance.vban.instream[i].sr
+        newVariables[`vban_instream_${i}_channel`] = this.instance.vban.instream[i].channel
+        newVariables[`vban_instream_${i}_bit`] = this.instance.vban.instream[i].bit
+        newVariables[`vban_instream_${i}_quality`] = this.instance.vban.instream[i].quality
+        newVariables[`vban_instream_${i}_route`] = this.instance.vban.instream[i].route
+      }
+      if (this.instance.vban.outstream[i]) {
+        newVariables[`vban_outstream_${i}_on`] = this.instance.vban.outstream[i].on
+        newVariables[`vban_outstream_${i}_name`] = this.instance.vban.outstream[i].name
+        newVariables[`vban_outstream_${i}_ip`] = this.instance.vban.outstream[i].ip
+        newVariables[`vban_outstream_${i}_port`] = this.instance.vban.outstream[i].port
+        newVariables[`vban_outstream_${i}_sr`] = this.instance.vban.outstream[i].sr
+        newVariables[`vban_outstream_${i}_channel`] = this.instance.vban.outstream[i].channel
+        newVariables[`vban_outstream_${i}_bit`] = this.instance.vban.outstream[i].bit
+        newVariables[`vban_outstream_${i}_quality`] = this.instance.vban.outstream[i].quality
+        newVariables[`vban_outstream_${i}_route`] = this.instance.vban.outstream[i].route
+      }
     }
 
     this.set(newVariables)

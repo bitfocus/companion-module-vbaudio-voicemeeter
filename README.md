@@ -10,6 +10,14 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**V1.3.0**
+- Added `VBAN Settings`, `Macro Button`, and `Send Raw Command`, actions
+- Added `VBAN` feedback
+- Added Variables (`TYPE` is `instream` or `outstream`, and `INDEX` is 0 to 7)
+  - `vban_on`
+  - `vban_TYPE_INDEX_on`, `vban_TYPE_INDEX_name`, `vban_TYPE_INDEX_ip`, `vban_TYPE_INDEX_port`, `vban_TYPE_INDEX_sr`, `vban_TYPE_INDEX_channel`, `vban_TYPE_INDEX_bit`, `vban_TYPE_INDEX_quality`, `vban_TYPE_INDEX_route`
+- Minor bug fixes
+
 **V1.2.1**
 - Added node-gyp dependency
 

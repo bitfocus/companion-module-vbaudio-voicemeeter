@@ -1,6 +1,6 @@
 {
-	"id": "voicemeeter",
-	"name": "voicemeeter",
+	"id": "vbaudio-voicemeeter",
+	"name": "vbaudio-voicemeeter",
 	"shortname": "Voicemeeter",
 	"description": "Voicemeeter API Library and Proxy",
 	"version": "0.0.0",
@@ -14,7 +14,7 @@
 			"url": "https://dist.dev"
 		}
 	],
-	"legacyIds": [],
+	"legacyIds": ["voicemeeter"],
 	"runtime": {
 		"type": "node18",
 		"api": "nodejs-ipc",

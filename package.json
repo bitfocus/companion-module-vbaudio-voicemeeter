@@ -29,7 +29,7 @@
     "@companion-module/base": "~1.5.1",
     "companion-module-utils": "^0.2.0",
     "node-gyp": "^10.0.1",
-    "socket.io": "^4.6.0",
+    "socket.io": "^4.6.2",
     "socket.io-client": "^4.6.1",
     "voicemeeter-connector": "https://github.com/thedist/voicemeeter-connector"
   },

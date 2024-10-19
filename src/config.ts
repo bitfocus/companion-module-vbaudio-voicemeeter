@@ -3,6 +3,7 @@ import { SomeCompanionConfigField } from '@companion-module/base'
 export interface Config {
   host: string
   port: number
+  commandStream: string
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
@@ -11,26 +12,33 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
       type: 'static-text',
       id: 'proxyInfo',
       width: 11,
-      label: 'Voicemeeter Proxy',
+      label: 'Voicemeeter Connection',
       value:
-        "If you're connecting to Voicemeeter on the same machine that's running Companion, set the Target Host as 127.0.0.1. Otherwise read the help documentation on how to start a proxy.",
+        'Connecting to Voicemeeter requires VBAN turned on, as well as the ASCII stream (called Command1 by default) turned on',
     },
     {
       type: 'textinput',
       id: 'host',
-      label: 'Target host',
+      label: 'VBAN IP',
       width: 6,
       default: '',
     },
     {
       type: 'number',
       id: 'port',
-      label: 'Proxy port',
+      label: 'VBAN Port',
       width: 6,
       default: 8099,
       min: 1,
       max: 65535,
       step: 1,
+    },
+    {
+      type: 'textinput',
+      id: 'commandStream',
+      label: 'VBAN Command Stream Name',
+      width: 12,
+      default: 'Command1',
     },
   ]
 }

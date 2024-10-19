@@ -12,15 +12,7 @@ interface Endpoints {
 }
 
 /**
- * @returns HTTP Request
- * @description Creates a basic HTTP request to be used internally to call the HTTP handler functions
- */
-export const defaultHTTPRequest = (): CompanionHTTPRequest => {
-  return { method: 'GET', path: '', headers: {}, baseUrl: '', hostname: '', ip: '', originalUrl: '', query: {} }
-}
-
-/**
- * @param instance vMix Instance
+ * @param instance Voicemeeter Instance
  * @param request HTTP request
  * @returns HTTP response
  * @description Checks incoming HTTP requests to the instance for an appropriate handler or returns a 404

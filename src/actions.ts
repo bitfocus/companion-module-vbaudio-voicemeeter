@@ -1,7 +1,7 @@
 import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
-import { BusProperties, CommandButtons, RecorderProperties, StripProperties, VBANInstream, VBANOutstream } from 'voicemeeter-connector'
+//import { BusProperties, CommandButtons, RecorderProperties, StripProperties, VBANInstream, VBANOutstream } from 'voicemeeter-connector'
 import VoicemeeterInstance from './index'
-import { BusMode, getOptions } from './utils'
+import { getOptions } from './utils'
 
 export interface VoicemeeterActions {
   busEQ: VoicemeeterAction<BusEQCallback>
@@ -14,6 +14,8 @@ export interface VoicemeeterActions {
   busReturns: VoicemeeterAction<BusReturnsCallback>
   busSel: VoicemeeterAction<BusSelCallback>
   commandActions: VoicemeeterAction<CommandActionsCallback>
+  macroButton: VoicemeeterAction<MacroButtonCallback>
+  rawCommand: VoicemeeterAction<RawCommandCallback>
   recorderArm: VoicemeeterAction<RecorderArmCallback>
   recorderArmInputOutput: VoicemeeterAction<RecorderArmInputOutputCallback>
   recorderGain: VoicemeeterAction<RecorderGainCallback>
@@ -27,23 +29,12 @@ export interface VoicemeeterActions {
   stripMono: VoicemeeterAction<StripMonoCallback>
   stripMute: VoicemeeterAction<StripMuteCallback>
   stripSolo: VoicemeeterAction<StripSoloCallback>
-  vbanSettings: VoicemeeterAction<VbanSettingsCallback>
-  macroButton: VoicemeeterAction<MacroButtonCallback>
-  rawCommand: VoicemeeterAction<RawCommandCallback>
   utilSelectBus: VoicemeeterAction<UtilSelectBusCallback>
   utilSelectStrip: VoicemeeterAction<UtilSelectStripCallback>
+  vbanSettings: VoicemeeterAction<VbanSettingsCallback>
 
   // Index signature
   [key: string]: VoicemeeterAction<any>
-}
-
-interface RouteAudioCallback {
-  actionId: 'routeAudio'
-  options: Readonly<{
-    type: 'Toggle' | 'On' | 'Off'
-    source: number
-    destination: 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
-  }>
 }
 
 interface BusEQCallback {
@@ -76,20 +67,28 @@ interface BusModeCallback {
   actionId: 'busMode'
   options: Readonly<{
     mode:
-    | 'normal'
-    | 'Amix'
-    | 'Bmix'
-    | 'Repeat'
-    | 'Composite'
-    | 'TVMix'
-    | 'UpMix21'
-    | 'UpMix41'
-    | 'UpMix61'
-    | 'CenterOnly'
-    | 'LFEOnly'
-    | 'RearOnly'
-    | 'next'
-    | 'prev'
+      | 'normal'
+      | 'Amix'
+      | 'Bmix'
+      | 'Repeat'
+      | 'Composite'
+      | 'TVMix'
+      | 'UpMix21'
+      | 'UpMix41'
+      | 'UpMix61'
+      | 'CenterOnly'
+      | 'LFEOnly'
+      | 'RearOnly'
+      | 'next'
+      | 'prev'
+    bus: number
+  }>
+}
+
+interface BusMonitorCallback {
+  actionId: 'busMonitor'
+  options: Readonly<{
+    type: 'Toggle' | 'On' | 'Off'
     bus: number
   }>
 }
@@ -106,14 +105,6 @@ interface BusMuteCallback {
   actionId: 'busMute'
   options: Readonly<{
     type: 'Toggle' | 'Mute' | 'Unmute'
-    bus: number
-  }>
-}
-
-interface BusMonitorCallback {
-  actionId: 'busMonitor'
-  options: Readonly<{
-    type: 'Toggle' | 'On' | 'Off'
     bus: number
   }>
 }
@@ -146,19 +137,97 @@ interface CommandActionsCallback {
   }>
 }
 
+interface MacroButtonCallback {
+  actionId: 'macroButton'
+  options: Readonly<{
+    id: string
+    type: 'state' | 'stateOnly' | 'trigger' | 'color'
+    state: boolean
+    color: string
+  }>
+}
+
+interface RawCommandCallback {
+  actionId: 'rawCommand'
+  options: Readonly<{
+    command: string
+  }>
+}
+
+interface RecorderArmCallback {
+  actionId: 'recorderArm'
+  options: Readonly<{
+    type:
+      | 'ArmBus(0)'
+      | 'ArmBus(2)'
+      | 'ArmBus(3)'
+      | 'ArmBus(4)'
+      | 'ArmBus(5)'
+      | 'ArmBus(6)'
+      | 'ArmBus(7)'
+      | 'ArmStrip(0)'
+      | 'ArmStrip(2)'
+      | 'ArmStrip(3)'
+      | 'ArmStrip(4)'
+      | 'ArmStrip(5)'
+      | 'ArmStrip(6)'
+      | 'ArmStrip(7)'
+    state: 'On' | 'Off'
+  }>
+}
+
+interface RecorderArmInputOutputCallback {
+  actionId: 'recorderArmInputOutput'
+  options: Readonly<{
+    type: 'strip' | 'bus'
+  }>
+}
+
+interface RecorderGainCallback {
+  actionId: 'recorderGain'
+  options: Readonly<{
+    value: string
+  }>
+}
+
+interface RecorderLoadTrackCallback {
+  actionId: 'recorderLoadTrack'
+  options: Readonly<{
+    path: string
+  }>
+}
+
+interface RecorderStateCallback {
+  actionId: 'recorderState'
+  options: Readonly<{
+    type: 'Play' | 'Stop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
+    state: 'On' | 'Off'
+  }>
+}
+
+interface RouteAudioCallback {
+  actionId: 'routeAudio'
+  options: Readonly<{
+    type: 'Toggle' | 'On' | 'Off'
+    recorderType: 'On' | 'Off'
+    source: number
+    destination: 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
+  }>
+}
+
 interface StripCompressorCallback {
   actionId: 'stripCompressor'
   options: Readonly<{
     setting:
-    | 'comp'
-    | 'compGainIn'
-    | 'compRatio'
-    | 'compThreshold'
-    | 'compAttack'
-    | 'compRelease'
-    | 'compKnee'
-    | 'compGainOut'
-    | 'compMakeUp'
+      | 'comp'
+      | 'compGainIn'
+      | 'compRatio'
+      | 'compThreshold'
+      | 'compAttack'
+      | 'compRelease'
+      | 'compKnee'
+      | 'compGainOut'
+      | 'compMakeUp'
     strip: number
     adjustment: 'Set' | 'Increase' | 'Decrease'
     comp: string
@@ -172,17 +241,6 @@ interface StripCompressorCallback {
     compMakeUp: string
   }>
 }
-
-type StripCompressorSetting =
-  | 'comp'
-  | 'compGainIn'
-  | 'compRatio'
-  | 'compThreshold'
-  | 'compAttack'
-  | 'compRelease'
-  | 'compKnee'
-  | 'compGainOut'
-  | 'compMakeUp'
 
 interface StripDenoiserCallback {
   actionId: 'stripDenoiser'
@@ -219,15 +277,6 @@ interface StripGateCallback {
   }>
 }
 
-type StripGateSetting =
-  | 'gate'
-  | 'gateThreshold'
-  | 'gateDamping'
-  | 'gateBPSidechain'
-  | 'gateAttack'
-  | 'gateHold'
-  | 'gateRelease'
-
 interface StripMonoCallback {
   actionId: 'stripMute'
   options: Readonly<{
@@ -252,92 +301,6 @@ interface StripSoloCallback {
   }>
 }
 
-interface RecorderArmCallback {
-  actionId: 'recorderArm'
-  options: Readonly<{
-    type:
-    | 'ArmBus0'
-    | 'ArmBus2'
-    | 'ArmBus3'
-    | 'ArmBus4'
-    | 'ArmBus5'
-    | 'ArmBus6'
-    | 'ArmBus7'
-    | 'ArmStrip0'
-    | 'ArmStrip2'
-    | 'ArmStrip3'
-    | 'ArmStrip4'
-    | 'ArmStrip5'
-    | 'ArmStrip6'
-    | 'ArmStrip7'
-  }>
-}
-
-interface RecorderArmInputOutputCallback {
-  actionId: 'recorderArmInputOutput'
-  options: Readonly<{
-    type: 'strip' | 'bus'
-  }>
-}
-
-interface RecorderGainCallback {
-  actionId: 'recorderGain'
-  options: Readonly<{
-    adjustment: 'Set' | 'Increase' | 'Decrease'
-    value: string
-  }>
-}
-
-interface RecorderLoadTrackCallback {
-  actionId: 'recorderLoadTrack'
-  options: Readonly<{
-    path: string
-  }>
-}
-
-interface RecorderStateCallback {
-  actionId: 'recorderState'
-  options: Readonly<{
-    type: 'Play' | 'Stop' | 'PlayStop' | 'Record' | 'Goto' | 'FastForward' | 'Loop' | 'PlayOnLoad'
-  }>
-}
-
-interface VbanSettingsCallback {
-  actionId: 'vbanSettings'
-  options: Readonly<{
-    type: 'vban' | 'instream' | 'outstream'
-    index: string
-    inProperty: 'on' | 'name' | 'ip' | 'port' | 'quality' | 'route'
-    outProperty: 'on' | 'name' | 'ip' | 'port' | 'sr' | 'channel' | 'bit' | 'quality' | 'route'
-    adjustment: 'Toggle' | 'On' | 'Off'
-    name: string
-    ip: string
-    port: string
-    sr: '11025' | '16000' | '22050' | '24000' | '32000' | '44100' | '48000' | '64000' | '88200' | '96000'
-    channel: string
-    bit: '1' | '2'
-    quality: '0' | '1' | '2' | '3' | '4'
-    route: string
-  }>
-}
-
-interface MacroButtonCallback {
-  actionId: 'macroButton'
-  options: Readonly<{
-    id: string
-    type: 'state' | 'stateOnly' | 'trigger' | 'color'
-    state: boolean
-    color: string
-  }>
-}
-
-interface RawCommandCallback {
-  actionId: 'rawCommand'
-  options: Readonly<{
-    command: string
-  }>
-}
-
 interface UtilSelectBusCallback {
   actionId: 'utilSelectBus'
   options: Readonly<{
@@ -352,6 +315,24 @@ interface UtilSelectStripCallback {
   }>
 }
 
+interface VbanSettingsCallback {
+  actionId: 'vbanSettings'
+  options: Readonly<{
+    type: 'instream' | 'outstream'
+    index: string
+    property: 'on' | 'name' | 'ip' | 'port' | 'sr' | 'channel' | 'bit' | 'quality' | 'route'
+    adjustment: 'Toggle' | 'On' | 'Off'
+    name: string
+    ip: string
+    port: string
+    sr: '11025' | '16000' | '22050' | '24000' | '32000' | '44100' | '48000' | '64000' | '88200' | '96000'
+    channel: string
+    bit: '1' | '2'
+    quality: '0' | '1' | '2' | '3' | '4'
+    route: string
+  }>
+}
+
 export type ActionCallbacks =
   | BusEQCallback
   | BusEQABCallback
@@ -363,6 +344,8 @@ export type ActionCallbacks =
   | BusReturnsCallback
   | BusSelCallback
   | CommandActionsCallback
+  | MacroButtonCallback
+  | RawCommandCallback
   | RecorderArmCallback
   | RecorderArmInputOutputCallback
   | RecorderGainCallback
@@ -376,18 +359,16 @@ export type ActionCallbacks =
   | StripMonoCallback
   | StripMuteCallback
   | StripSoloCallback
-  | VbanSettingsCallback
-  | MacroButtonCallback
-  | RawCommandCallback
   | UtilSelectBusCallback
   | UtilSelectStripCallback
+  | VbanSettingsCallback
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
   default: string | number | boolean | null
 }
 
-// Actions specific to vMix
+// Actions specific to Voicemeeter
 export interface VoicemeeterAction<T> {
   name: string
   description?: string
@@ -398,7 +379,7 @@ export interface VoicemeeterAction<T> {
 }
 
 export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
-  const utilOptions = getOptions(instance)
+  const utilOptions = getOptions()
 
   return {
     busEQ: {
@@ -422,13 +403,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        let newValue = instance.bus[bus].eq ? 0 : 1
+        let newValue = instance.data.busState[bus].eq ? 0 : 1
         if (action.options.type === 'On') newValue = 1
         if (action.options.type === 'Off') newValue = 0
 
-        instance.connection?.setBusParameter(bus, BusProperties.EQ, newValue)
+        instance.connection.sendCommand(`Bus[${bus}].EQ.on=${newValue}`)
       },
     },
 
@@ -447,7 +428,6 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: 'B', label: 'B' },
           ],
         },
-
         {
           type: 'dropdown',
           label: 'Bus',
@@ -457,14 +437,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: (action) => {
-        const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        const bus: number = action.options.bus === -1 ? instance.selectedBus : action.options.bus
+        if (!instance.data.busState[bus]) return
 
-        let newValue = instance.bus[bus].eqAB ? 0 : 1
+        let newValue: 0 | 1 = instance.data.busState[bus].eqB ? 0 : 1
         if (action.options.mode === 'A') newValue = 0
         if (action.options.mode === 'B') newValue = 1
 
-        instance.connection?.setBusParameter(bus, BusProperties.EQAB, newValue)
+        instance.connection.sendCommand(`Bus[${bus}].EQ.AB=${newValue}`)
       },
     },
 
@@ -495,17 +475,19 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Fade time ms (0 for instant)',
           id: 'fade',
           default: '0',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Gain -60 to +12 dB',
           id: 'value',
           default: '0',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
         let fade: string | number = await instance.parseVariablesInString(action.options.fade)
         let value: string | number = await instance.parseVariablesInString(action.options.value)
@@ -514,7 +496,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         value = parseFloat(value)
         if (isNaN(fade) || isNaN(value)) return
 
-        const currentValue = instance.bus[bus].gain
+        const currentValue = instance.data.busGaindB100[bus]
         let newValue
 
         if (action.options.adjustment === 'Set') {
@@ -531,9 +513,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         if (newValue !== currentValue) {
           if (fade === 0) {
-            instance.connection?.setBusParameter(bus, BusProperties.Gain, newValue)
+            instance.connection.sendCommand(`Bus[${bus}].Gain=${newValue}`)
           } else {
-            instance.connection?.setBusParameter(bus, BusProperties.FadeTo, `(${newValue},${fade})`)
+            instance.connection.sendCommand(`Bus[${bus}].FadeTo=(${newValue},${fade})`)
           }
         }
       },
@@ -575,9 +557,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        const modes: BusMode[] = [
+        const modes = [
           'normal',
           'Amix',
           'Bmix',
@@ -591,8 +573,24 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           'LFEOnly',
           'RearOnly',
         ]
-        let newMode: BusMode
-        const index = modes.indexOf(instance.bus[bus].mode)
+
+        const rtPacketModes = [
+          'normal',
+          'mixdownA',
+          'mixdownB',
+          'repeat',
+          'composite',
+          'upmixtv',
+          'upmixtv2',
+          'upmixtv4',
+          'upmixtv6',
+          'center',
+          'lfe',
+          'rear',
+        ]
+
+        const index = rtPacketModes.indexOf(instance.data.busState[bus].mode)
+        let newMode = ''
 
         if (action.options.mode === 'next') {
           const newIndex = (index + 1) % modes.length
@@ -604,18 +602,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           newMode = action.options.mode
         }
 
-        if (newMode === 'normal') instance.connection?.setBusParameter(bus, BusProperties.ModeNormal, 1)
-        if (newMode === 'Amix') instance.connection?.setBusParameter(bus, BusProperties.ModeAmix, 1)
-        if (newMode === 'Bmix') instance.connection?.setBusParameter(bus, BusProperties.ModeBmix, 1)
-        if (newMode === 'Repeat') instance.connection?.setBusParameter(bus, BusProperties.ModeRepeat, 1)
-        if (newMode === 'Composite') instance.connection?.setBusParameter(bus, BusProperties.ModeComposite, 1)
-        if (newMode === 'TVMix') instance.connection?.setBusParameter(bus, BusProperties.ModeTVMix, 1)
-        if (newMode === 'UpMix21') instance.connection?.setBusParameter(bus, BusProperties.ModeUpMix21, 1)
-        if (newMode === 'UpMix41') instance.connection?.setBusParameter(bus, BusProperties.ModeUpMix41, 1)
-        if (newMode === 'UpMix61') instance.connection?.setBusParameter(bus, BusProperties.ModeUpMix61, 1)
-        if (newMode === 'CenterOnly') instance.connection?.setBusParameter(bus, BusProperties.ModeCenterOnly, 1)
-        if (newMode === 'LFEOnly') instance.connection?.setBusParameter(bus, BusProperties.ModeLFEOnly, 1)
-        if (newMode === 'RearOnly') instance.connection?.setBusParameter(bus, BusProperties.ModeRearOnly, 1)
+        instance.connection.sendCommand(`Bus[${bus}].mode.${newMode}=1`)
       },
     },
 
@@ -640,14 +627,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        let value = instance.bus[bus].monitor ? 0 : 1
+        let value = instance.data.busState[bus].monitor ? 0 : 1
         if (action.options.type === 'On') value = 1
         if (action.options.type === 'Off') value = 0
 
-        if (instance.bus[bus].monitor !== value) {
-          instance.connection?.setBusParameter(bus, BusProperties.Monitor, value)
+        if (instance.data.busState[bus].monitor ? 1 : 0 !== value) {
+          instance.connection.sendCommand(`Bus[${bus}].Monitor=${value}`)
         }
       },
     },
@@ -673,15 +660,15 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        let value = action.options.type === 'On' ? 1 : 0
+        let value = instance.data.busState[bus].mono ? 0 : 1
+        if (action.options.type === 'On') value = 1
+        if (action.options.type === 'Off') value = 0
 
-        if (action.options.type === 'Toggle') {
-          value = instance.bus[bus].mono ? 0 : 1
+        if (instance.data.busState[bus].mono ? 1 : 0 !== value) {
+          instance.connection.sendCommand(`Bus[${bus}].Mono=${value}`)
         }
-
-        instance.connection?.setBusParameter(bus, BusProperties.Mono, value)
       },
     },
 
@@ -706,14 +693,15 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        let value = action.options.type === 'Mute' ? 1 : 0
+        let value = instance.data.busState[bus].mute ? 0 : 1
+        if (action.options.type === 'Mute') value = 1
+        if (action.options.type === 'Unmute') value = 0
 
-        if (action.options.type === 'Toggle') {
-          value = instance.bus[bus].mute ? 0 : 1
+        if (instance.data.busState[bus].mute ? 1 : 0 !== value) {
+          instance.connection.sendCommand(`Bus[${bus}].Mute=${value}`)
         }
-        instance.connection?.setBusParameter(bus, BusProperties.Mute, value)
       },
     },
 
@@ -741,52 +729,22 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
         {
-          type: 'dropdown',
-          label: 'Adjustment',
-          id: 'adjustment',
-          default: 'Set',
-          choices: [
-            { id: 'Set', label: 'Set' },
-            { id: 'Increase', label: 'Increase' },
-            { id: 'Decrease', label: 'Decrease' },
-          ],
-        },
-        {
           type: 'textinput',
           label: 'Value 0 to 10',
           id: 'value',
           default: '0',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        let value = parseFloat(await instance.parseVariablesInString(action.options.value))
+        if (!instance.data.busState[bus] || isNaN(value)) return
 
-        const value = instance.bus[bus][action.options.returns]
-        const change = parseFloat(await instance.parseVariablesInString(action.options.value))
-        if (isNaN(change)) return
+        if (value < 0) value = 0
+        if (value > 10) value = 10
 
-        let newValue
-
-        if (action.options.adjustment === 'Set') {
-          newValue = change
-        } else if (action.options.adjustment === 'Increase') {
-          newValue = value + change
-        } else {
-          newValue = value - change
-        }
-
-        if (newValue < 0) newValue = 0
-        if (newValue > 10) newValue = 10
-
-        if (action.options.returns === 'returnReverb')
-          instance.connection?.setBusParameter(bus, BusProperties.ReturnReverb, newValue)
-        if (action.options.returns === 'returnDelay')
-          instance.connection?.setBusParameter(bus, BusProperties.ReturnDelay, newValue)
-        if (action.options.returns === 'returnFx1')
-          instance.connection?.setBusParameter(bus, BusProperties.ReturnFx1, newValue)
-        if (action.options.returns === 'returnFx2')
-          instance.connection?.setBusParameter(bus, BusProperties.ReturnFx2, newValue)
+        instance.connection.sendCommand(`Bus[${bus}].${action.options.returns}=${value}`)
       },
     },
 
@@ -811,14 +769,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        if (!instance.bus[bus]) return
+        if (!instance.data.busState[bus]) return
 
-        let value = instance.bus[bus].sel ? 0 : 1
+        let value = instance.data.busState[bus].sel ? 0 : 1
         if (action.options.type === 'On') value = 1
         if (action.options.type === 'Off') value = 0
 
-        if ((instance.bus[bus].sel ? 1 : 0) !== value) {
-          instance.connection?.setBusParameter(bus, BusProperties.Sel, value)
+        if (instance.data.busState[bus].sel ? 1 : 0 !== value) {
+          instance.connection.sendCommand(`Bus[${bus}].Sel=${value}`)
         }
       },
     },
@@ -842,7 +800,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: 'Save', label: 'Save Complete filename (xml)' },
             { id: 'Load', label: 'Load Complete filename (xml)' },
             { id: 'Lock', label: 'Lock / Unlock Voicemeeter' },
-          ]
+          ],
         },
         {
           type: 'dropdown',
@@ -853,14 +811,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: '1', label: 'Show' },
             { id: '0', label: 'Hide' },
           ],
-          isVisible: (options) => options.command === 'Show'
+          isVisible: (options) => options.command === 'Show',
         },
         {
           type: 'textinput',
           label: '',
           id: 'path',
           default: '',
-          isVisible: (options) => options.command === 'Save' || options.command === 'Load'
+          isVisible: (options) => options.command === 'Save' || options.command === 'Load',
         },
         {
           type: 'dropdown',
@@ -871,7 +829,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: '1', label: 'Lock' },
             { id: '0', label: 'Unlock' },
           ],
-          isVisible: (options) => options.command === 'Lock'
+          isVisible: (options) => options.command === 'Lock',
         },
       ],
       callback: (action) => {
@@ -880,7 +838,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (command === 'Default') {
           return
         } else if (command === 'Show') {
-          instance.connection?.executeCommandAction(command, action.options.show)
+          instance.connection.sendCommand(`Command.Show=${action.options.show}`)
         } else if (command === 'Save' || command === 'Load') {
           let path = action.options.path
           if (path === '') return
@@ -889,12 +847,98 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             path = `"${[path]}"`
           }
 
-          instance.connection?.executeCommandAction(command, path)
+          instance.connection.sendCommand(`Command.Save=${path}`)
         } else if (command === 'Lock') {
-          instance.connection?.executeCommandAction(command, action.options.lock)
+          instance.connection.sendCommand(`Command.Lock=${action.options.lock}`)
         } else {
-          instance.connection?.executeCommandAction(command, 1)
+          instance.connection.sendCommand(`Command.${command}=1`)
         }
+      },
+    },
+
+    macroButton: {
+      name: 'Macro Button',
+      description: '',
+      options: [
+        {
+          type: 'textinput',
+          label: 'Button ID (0 based index)',
+          id: 'id',
+          default: '0',
+          useVariables: true,
+        },
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'type',
+          default: 'state',
+          choices: [
+            { id: 'state', label: 'Macro Button State' },
+            { id: 'stateOnly', label: 'Change button state only' },
+            { id: 'trigger', label: 'Trigger State' },
+            { id: 'color', label: 'Color' },
+          ],
+        },
+        {
+          type: 'checkbox',
+          label: 'State',
+          id: 'state',
+          default: false,
+          isVisible: (options) => options.type !== 'color',
+        },
+        {
+          type: 'textinput',
+          label: 'Color (0 to 8)',
+          id: 'color',
+          default: '0',
+          useVariables: true,
+          isVisible: (options) => options.type === 'color',
+        },
+      ],
+      callback: async (action) => {
+        let id: number | string = await instance.parseVariablesInString(action.options.id)
+        id = parseInt(id, 10)
+
+        if (isNaN(id)) {
+          instance.log('warn', 'Macro Button id must be a number')
+          return
+        }
+
+        const value = action.options.state ? 1 : 0
+
+        if (action.options.type === 'state') {
+          instance.connection.sendCommand(`Command.Button[${id}].State=${value}`)
+        } else if (action.options.type === 'stateOnly') {
+          instance.connection.sendCommand(`Command.Button[${id}].StateOnly=${value}`)
+        } else if (action.options.type === 'trigger') {
+          instance.connection.sendCommand(`Command.Button[${id}].Trigger=${value}`)
+        } else {
+          const color = await instance.parseVariablesInString(action.options.color)
+          const colorTest = parseInt(color, 10)
+          if (isNaN(colorTest) || colorTest < 0 || colorTest > 8) {
+            instance.log('warn', 'Macro Button Color value must be a number 0 to 8')
+            return
+          }
+          instance.connection.sendCommand(`Command.Button[${id}].Color=${color}`)
+        }
+      },
+    },
+
+    rawCommand: {
+      name: 'Send Raw Command',
+      description: `Send a raw command to Voicemeeter`,
+      options: [
+        {
+          type: 'textinput',
+          label: 'Command',
+          id: 'command',
+          default: '',
+          useVariables: true,
+        },
+      ],
+      callback: async (action) => {
+        const command = await instance.parseVariablesInString(action.options.command)
+        instance.connection.sendCommand(command)
       },
     },
 
@@ -906,28 +950,35 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           type: 'dropdown',
           label: 'Type',
           id: 'type',
-          default: 'ArmStrip0',
+          default: 'ArmStrip(0)',
           choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: `ArmStrip${index}`,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `ArmStrip(${index})`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 'ArmBus0', label: 'A1' },
-            { id: 'ArmBus1', label: 'A2' },
-            { id: 'ArmBus2', label: 'A3' },
-            { id: 'ArmBus3', label: 'A4' },
-            { id: 'ArmBus4', label: 'A5' },
-            { id: 'ArmBus5', label: 'B1' },
-            { id: 'ArmBus6', label: 'B2' },
-            { id: 'ArmBus7', label: 'B3' },
+            { id: 'ArmBus(0)', label: 'Bus A1' },
+            { id: 'ArmBus(1)', label: 'Bus A2' },
+            { id: 'ArmBus(2)', label: 'Bus A3' },
+            { id: 'ArmBus(3)', label: 'Bus A4' },
+            { id: 'ArmBus(4)', label: 'Bus A5' },
+            { id: 'ArmBus(5)', label: 'Bus B1' },
+            { id: 'ArmBus(6)', label: 'Bus B2' },
+            { id: 'ArmBus(7)', label: 'Bus B3' },
+          ],
+        },
+        {
+          type: 'dropdown',
+          label: 'State',
+          id: 'state',
+          default: 'On',
+          choices: [
+            { id: 'On', label: 'On' },
+            { id: 'Off', label: 'Off' },
           ],
         },
       ],
       callback: (action) => {
-        instance.connection?.setRecorderParameter(
-          RecorderProperties[action.options.type],
-          instance.recorder[action.options.type] === 0 ? 1 : 0
-        )
+        instance.connection.sendCommand(`Recorder.${action.options.type}=${action.options.state === 'On' ? 1 : 0}`)
       },
     },
 
@@ -947,33 +998,21 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: (action) => {
-        instance.connection?.setRecorderParameter(
-          RecorderProperties.ModeRecBus,
-          action.options.type === 'strip' ? 0 : 1
-        )
+        const type = action.options.type === 'strip' ? 0 : 1
+        instance.connection.sendCommand(`Recorder.mode.recbus=${type}`)
       },
     },
 
     recorderGain: {
       name: 'Recorder - Gain',
-      description: 'Adjust Recorder Gain',
+      description: 'Set Recorder Gain',
       options: [
-        {
-          type: 'dropdown',
-          label: 'Adjustment',
-          id: 'adjustment',
-          default: 'Set',
-          choices: [
-            { id: 'Set', label: 'Set' },
-            { id: 'Increase', label: 'Increase' },
-            { id: 'Decrease', label: 'Decrease' },
-          ],
-        },
         {
           type: 'textinput',
           label: 'Volume',
           id: 'value',
           default: '1',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
@@ -982,16 +1021,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         if (isNaN(value)) return
 
-        if (action.options.adjustment === 'Increase') {
-          value = instance.recorder.gain + value
-        } else if (action.options.adjustment === 'Decrease') {
-          value = instance.recorder.gain - value
-        }
-
         if (value < -60) value = -60
         if (value > 12) value = 12
 
-        instance.connection?.setRecorderParameter(RecorderProperties.Gain, value)
+        instance.connection.sendCommand(`Recorder.gain=${value}`)
       },
     },
 
@@ -1004,12 +1037,12 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Filepath',
           id: 'path',
           default: '',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const path = await instance.parseVariablesInString(action.options.path)
-
-        instance.connection?.setRecorderParameter(RecorderProperties.Load, `"${path}"`)
+        instance.connection.sendCommand(`Recorder.load="${path}"`)
       },
     },
 
@@ -1025,34 +1058,38 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [
             { id: 'Play', label: 'Play' },
             { id: 'Stop', label: 'Stop' },
-            { id: 'PlayStop', label: 'Toggle Play/Stop' },
             { id: 'Record', label: 'Record' },
             { id: 'Goto', label: 'Restart' },
             { id: 'Rewind', label: 'Rewind' },
-            { id: 'FastForward', label: 'FastForward' },
-            { id: 'Loop', label: 'Toggle Loop' },
-            { id: 'PlayOnLoad', label: 'Toggle Play-On-Load' },
+            { id: 'ff', label: 'FastForward' },
+            { id: 'Loop', label: 'Loop' },
+            { id: 'PlayOnLoad', label: 'Play-On-Load' },
           ],
+        },
+        {
+          type: 'dropdown',
+          label: 'State',
+          id: 'state',
+          default: 'On',
+          choices: [
+            { id: 'On', label: 'On' },
+            { id: 'Off', label: 'Off' },
+          ],
+          isVisible: (options) => {
+            return options.type === 'Loop' || options.type === 'PlayOnLoad'
+          },
         },
       ],
       callback: (action) => {
+        const state = action.options.state === 'On' ? 1 : 0
         if (action.options.type === 'Loop') {
-          instance.connection?.setRecorderParameter(
-            RecorderProperties.ModeLoop,
-            instance.recorder.modeLoop === 0 ? 1 : 0
-          )
+          instance.connection.sendCommand(`Recorder.Loop=${state}`)
         } else if (action.options.type === 'PlayOnLoad') {
-          instance.connection?.setRecorderParameter(
-            RecorderProperties.ModePlayOnLoad,
-            instance.recorder.modePlayOnLoad === 0 ? 1 : 0
-          )
+          instance.connection.sendCommand(`Recorder.mode.PlayOnLoad=${state}`)
         } else if (action.options.type === 'Goto') {
-          instance.connection?.setRecorderParameter(RecorderProperties.GoTo, '00:00:00')
-        } else if (action.options.type === 'PlayStop') {
-          let actionType: 'Play' | 'Stop' = instance.recorder['play'] === 1 ? 'Stop' : 'Play'
-          instance.connection?.setRecorderParameter(RecorderProperties[actionType], 1)
+          instance.connection.sendCommand(`Recorder.goto=00:00:00`)
         } else {
-          instance.connection?.setRecorderParameter(RecorderProperties[action.options.type], 1)
+          instance.connection.sendCommand(`Recorder.${action.options.type}=1`)
         }
       },
     },
@@ -1066,6 +1103,18 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'type',
           default: 'Toggle',
           choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+          isVisible: (options) => options.source !== 8,
+        },
+        {
+          type: 'dropdown',
+          label: 'Type',
+          id: 'recorderType',
+          default: 'Toggle',
+          choices: [
+            { id: 'On', label: 'On' },
+            { id: 'Off', label: 'Off' },
+          ],
+          isVisible: (options) => options.source === 8,
         },
         {
           type: 'dropdown',
@@ -1098,24 +1147,15 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (source === -1) return
 
         if (source === 8) {
-          let newValue = instance.recorder[action.options.destination] ? 0 : 1
-          if (action.options.type === 'On') newValue = 1
-          if (action.options.type === 'Off') newValue = 0
-
-          instance.connection?.setRecorderParameter(
-            RecorderProperties[action.options.destination],
-            newValue
+          instance.connection.sendCommand(
+            `Recorder.[${action.options.destination}]=${action.options.recorderType === 'On' ? 1 : 0}`
           )
         } else {
-          let newValue = instance.strip[source][action.options.destination] ? 0 : 1
+          let newValue = instance.data.stripState[source][`bus${action.options.destination}`] ? 0 : 1
           if (action.options.type === 'On') newValue = 1
           if (action.options.type === 'Off') newValue = 0
 
-          instance.connection?.setStripParameter(
-            source,
-            StripProperties[action.options.destination],
-            newValue
-          )
+          instance.connection.sendCommand(`Strip[${source}].${action.options.destination}=${newValue}`)
         }
       },
     },
@@ -1147,12 +1187,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip
-              .filter((strip) => strip.type === 'physical')
-              .map((strip, index) => ({
-                id: index,
-                label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-              })),
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
             { id: -1, label: 'Selected' },
           ],
         },
@@ -1166,12 +1204,16 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: 'Increase', label: 'Increase' },
             { id: 'Decrease', label: 'Decrease' },
           ],
+          isVisible: (options) => {
+            return options.setting !== 'comp' && options.setting !== 'compMakeUp'
+          },
         },
         {
           type: 'textinput',
           label: 'Compressor: 0 to 10',
           id: 'comp',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'comp'
           },
@@ -1181,6 +1223,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Input Gain: -24 to +24',
           id: 'compGainIn',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compGainIn'
           },
@@ -1190,6 +1233,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Ratio: 1 to 8',
           id: 'compRatio',
           default: '1',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compRatio'
           },
@@ -1199,6 +1243,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Threshold: -40 to -3 dB',
           id: 'compThreshold',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compThreshold'
           },
@@ -1208,6 +1253,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Attack Time: 0 to 200 ms',
           id: 'compAttack',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compAttack'
           },
@@ -1217,6 +1263,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Release Time: 0 to 5000 ms',
           id: 'compRelease',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compRelease'
           },
@@ -1226,6 +1273,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Knee: 0 to 1',
           id: 'compKnee',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compKnee'
           },
@@ -1235,6 +1283,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Output Gain: -24 to +24',
           id: 'compGainOut',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compGainOut'
           },
@@ -1244,6 +1293,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Make Up: 0 or 1',
           id: 'compMakeUp',
           default: '0',
+          useVariables: true,
           isVisible: (options) => {
             return options.setting === 'compMakeUp'
           },
@@ -1251,57 +1301,66 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: async (action) => {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
-        const strip = instance.strip[stripId]
+        if (stripId === -1) return
 
-        if (!strip) return
-
-        const updateCompressor = async (setting: StripCompressorSetting, min: number, max: number, property: any) => {
-          let value: string | number = await instance.parseVariablesInString(action.options[setting])
+        const updateCompressor = async (command: any, min: number, max: number) => {
+          let value: string | number = await instance.parseVariablesInString(action.options[action.options.setting])
           value = parseFloat(value)
           if (isNaN(value)) return
 
-          if (setting === 'compMakeUp') {
-            instance.connection?.setStripParameter(stripId, property, value)
-            return
-          }
-
-          const currentValue = strip[setting] as number
-          let newValue
-
-          if (action.options.adjustment === 'Set') {
-            newValue = value
-          } else if (action.options.adjustment === 'Increase') {
-            newValue = currentValue + value
+          if (action.options.setting === 'comp' || action.options.setting === 'compMakeUp') {
+            instance.connection.sendCommand(`Strip[${stripId}].${command}=${value}`)
           } else {
-            newValue = currentValue - value
-          }
+            const compressorType = {
+              compGainIn: 'gainIn',
+              compRatio: 'ratio',
+              compThreshold: 'threshold',
+              compAttack: 'attack',
+              compRelease: 'release',
+              compKnee: 'knee',
+              compGainOut: 'gainOut',
+            }
 
-          if (newValue < min) newValue = min
-          if (newValue > max) newValue = max
+            let newValue
+            const currentValue: number = instance.data.stripData[stripId]?.comp[compressorType[action.options.setting]]
+            if (currentValue === undefined) {
+              instance.log('debug', `Missing strip data, strip id: ${stripId}`)
+              return
+            }
 
-          if (newValue !== currentValue) {
-            instance.connection?.setStripParameter(stripId, property, newValue)
+            if (action.options.adjustment === 'Set') {
+              newValue = value
+            } else if (action.options.adjustment === 'Increase') {
+              newValue = currentValue + value
+            } else {
+              newValue = currentValue - value
+            }
+
+            if (newValue < min) newValue = min
+            if (newValue > max) newValue = max
+
+            instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
           }
         }
 
         if (action.options.setting === 'comp') {
-          updateCompressor('comp', 0, 10, StripProperties.Comp)
+          updateCompressor('Comp', 0, 10)
         } else if (action.options.setting === 'compGainIn') {
-          updateCompressor('compGainIn', -24, 24, StripProperties.CompGainIn)
+          updateCompressor('Comp.GainIn', -24, 24)
         } else if (action.options.setting === 'compRatio') {
-          updateCompressor('compRatio', 1, 8, StripProperties.CompRatio)
+          updateCompressor('Comp.Ratio', 1, 8)
         } else if (action.options.setting === 'compThreshold') {
-          updateCompressor('compThreshold', -40, -3, StripProperties.CompThreshold)
+          updateCompressor('Comp.Threshold', -40, -3)
         } else if (action.options.setting === 'compAttack') {
-          updateCompressor('compAttack', 0, 200, StripProperties.CompAttack)
+          updateCompressor('Comp.Attack', 0, 200)
         } else if (action.options.setting === 'compRelease') {
-          updateCompressor('compRelease', 0, 5000, StripProperties.CompRelease)
+          updateCompressor('Comp.Release', 0, 5000)
         } else if (action.options.setting === 'compKnee') {
-          updateCompressor('compKnee', 0, 1, StripProperties.CompKnee)
+          updateCompressor('Comp.Knee', 0, 1)
         } else if (action.options.setting === 'compGainOut') {
-          updateCompressor('compGainOut', -24, 24, StripProperties.CompGainOut)
+          updateCompressor('Comp.GainOut', -24, 24)
         } else if (action.options.setting === 'compMakeUp') {
-          updateCompressor('compMakeUp', 0, 1, StripProperties.CompMakeUp)
+          updateCompressor('Comp.MakeUp', 0, 1)
         }
       },
     },
@@ -1316,24 +1375,11 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip
-              .filter((strip) => strip.type === 'physical')
-              .map((strip, index) => ({
-                id: index,
-                label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-              })),
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
             { id: -1, label: 'Selected' },
-          ],
-        },
-        {
-          type: 'dropdown',
-          label: 'Adjustment',
-          id: 'adjustment',
-          default: 'Set',
-          choices: [
-            { id: 'Set', label: 'Set' },
-            { id: 'Increase', label: 'Increase' },
-            { id: 'Decrease', label: 'Decrease' },
           ],
         },
         {
@@ -1341,35 +1387,21 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Value: 0 to 10',
           id: 'value',
           default: '0',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
-        const strip = instance.strip[stripId]
-
-        if (!strip) return
+        if (stripId === -1) return
 
         let value: string | number = await instance.parseVariablesInString(action.options.value)
         value = parseFloat(value)
         if (isNaN(value)) return
 
-        const currentValue = strip.denoiser
-        let newValue
-
-        if (action.options.adjustment === 'Set') {
-          newValue = value
-        } else if (action.options.adjustment === 'Increase') {
-          newValue = currentValue + value
-        } else {
-          newValue = currentValue - value
-        }
-
+        let newValue = value
         if (newValue < 0) newValue = 0
         if (newValue > 10) newValue = 10
-
-        if (newValue !== currentValue) {
-          instance.connection?.setStripParameter(stripId, StripProperties.Denoiser, newValue)
-        }
+        instance.connection.sendCommand(`Strip[${stripId}].Denoiser=${newValue}`)
       },
     },
 
@@ -1383,9 +1415,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
             { id: -1, label: 'Selected' },
           ],
@@ -1406,18 +1438,19 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Fade time ms (0 for instant)',
           id: 'fade',
           default: '0',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Gain -60 to +12 dB',
           id: 'value',
           default: '0',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
-        const strip = instance.strip[stripId]
-        if (!strip) return
+        if (stripId === -1) return
 
         let fade: string | number = await instance.parseVariablesInString(action.options.fade)
         let value: string | number = await instance.parseVariablesInString(action.options.value)
@@ -1426,7 +1459,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         value = parseFloat(value)
         if (isNaN(fade) || isNaN(value)) return
 
-        const currentValue = strip.gain
+        const currentValue = instance.data.stripGaindB100Layer1[stripId]
         let newValue
 
         if (action.options.adjustment === 'Set') {
@@ -1441,12 +1474,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (newValue > 12) newValue = 12
         if (fade < 0) fade = 0
 
-        if (newValue !== currentValue) {
-          if (fade === 0) {
-            instance.connection?.setStripParameter(stripId, StripProperties.Gain, newValue)
-          } else {
-            instance.connection?.setStripParameter(stripId, StripProperties.FadeTo, `(${newValue},${fade})`)
-          }
+        if (fade === 0) {
+          instance.connection.sendCommand(`Strip[${stripId}].Gain=${newValue}`)
+        } else {
+          instance.connection.sendCommand(`Strip[${stripId}].FadeTo=(${newValue},${fade})`)
         }
       },
     },
@@ -1476,12 +1507,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip
-              .filter((strip) => strip.type === 'physical')
-              .map((strip, index) => ({
-                id: index,
-                label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-              })),
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
             { id: -1, label: 'Selected' },
           ],
         },
@@ -1501,108 +1530,89 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Gate: 0 to 10',
           id: 'gate',
           default: '0',
-          isVisible: (options) => {
-            return options.setting === 'gate'
-          },
+          isVisible: (options) => options.setting === 'gate',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Threshold: -60 to -10 dB',
           id: 'gateThreshold',
           default: '-60',
-          isVisible: (options) => {
-            return options.setting === 'gateThreshold'
-          },
+          isVisible: (options) => options.setting === 'gateThreshold',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Damping: -60 to -10 dB',
           id: 'gateDamping',
           default: '-60',
-          isVisible: (options) => {
-            return options.setting === 'gateDamping'
-          },
+          isVisible: (options) => options.setting === 'gateDamping',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'BP Sidechain: 100 to 4000 Hz',
           id: 'gateBPSidechain',
           default: '0',
-          isVisible: (options) => {
-            return options.setting === 'gateBPSidechain'
-          },
+          isVisible: (options) => options.setting === 'gateBPSidechain',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Attack Time: 0 to 1000 ms',
           id: 'gateAttack',
           default: '0',
-          isVisible: (options) => {
-            return options.setting === 'gateAttack'
-          },
+          isVisible: (options) => options.setting === 'gateAttack',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'Hold Time: 0 to 5000 ms',
           id: 'gateHold',
           default: '0',
-          isVisible: (options) => {
-            return options.setting === 'gateHold'
-          },
+          isVisible: (options) => options.setting === 'gateHold',
+          useVariables: true,
         },
         {
           type: 'textinput',
           label: 'ReleaseTime: 0 to 5000 ms',
           id: 'gateRelease',
           default: '0',
-          isVisible: (options) => {
-            return options.setting === 'gateRelease'
-          },
+          isVisible: (options) => options.setting === 'gateRelease',
+          useVariables: true,
         },
       ],
       callback: async (action) => {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
-        const strip = instance.strip[stripId]
+        if (stripId === -1) return
 
-        if (!strip) return
-
-        const updateGate = async (setting: StripGateSetting, min: number, max: number, property: any) => {
-          let value: string | number = await instance.parseVariablesInString(action.options[setting])
+        const updateGate = async (command: any, min: number, max: number) => {
+          const commandValue: any = action.options[action.options.setting]
+          let value: string | number = await instance.parseVariablesInString(commandValue)
           value = parseFloat(value)
           if (isNaN(value)) return
 
-          const currentValue = strip[setting]
-          let newValue
-
-          if (action.options.adjustment === 'Set') {
-            newValue = value
-          } else if (action.options.adjustment === 'Increase') {
-            newValue = currentValue + value
-          } else {
-            newValue = currentValue - value
-          }
-
+          let newValue = value
           if (newValue < min) newValue = min
           if (newValue > max) newValue = max
 
-          if (newValue !== currentValue) {
-            instance.connection?.setStripParameter(stripId, property, newValue)
-          }
+          instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
         }
+
         if (action.options.setting === 'gate') {
-          updateGate('gate', 0, 10, StripProperties.Gate)
+          updateGate('Gate', 0, 10)
         } else if (action.options.setting === 'gateThreshold') {
-          updateGate('gateThreshold', -60, -10, StripProperties.GateThreshold)
+          updateGate('Gate.Threshold', -60, -10)
         } else if (action.options.setting === 'gateDamping') {
-          updateGate('gateDamping', -60, -10, StripProperties.GateDamping)
+          updateGate('Gate.Damping', -60, -10)
         } else if (action.options.setting === 'gateBPSidechain') {
-          updateGate('gateBPSidechain', 100, 4000, StripProperties.GateBPSidechain)
+          updateGate('Gate.BPSidechain', 100, 4000)
         } else if (action.options.setting === 'gateAttack') {
-          updateGate('gateAttack', 0, 1000, StripProperties.GateAttack)
+          updateGate('Gate.Attack', 0, 1000)
         } else if (action.options.setting === 'gateHold') {
-          updateGate('gateHold', 0, 5000, StripProperties.GateHold)
+          updateGate('Gate.Hold', 0, 5000)
         } else if (action.options.setting === 'gateRelease') {
-          updateGate('gateRelease', 0, 5000, StripProperties.GateRelease)
+          updateGate('Gate.Release', 0, 5000)
         }
       },
     },
@@ -1624,24 +1634,25 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
       ],
       callback: (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
+        if (strip === -1) return
+
         let value = action.options.type === 'On' ? 1 : 0
 
         if (action.options.type === 'Toggle') {
-          value = instance.strip[strip].mono ? 0 : 1
+          value = instance.data.stripState[strip].mono ? 0 : 1
         }
 
-        instance.connection?.setStripParameter(strip, StripProperties.Mono, value)
+        instance.connection.sendCommand(`Strip[${strip}].Mono=${value}`)
       },
     },
 
@@ -1662,24 +1673,25 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
       ],
       callback: (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
+        if (strip === -1) return
+
         let value = action.options.type === 'Mute' ? 1 : 0
 
         if (action.options.type === 'Toggle') {
-          value = instance.strip[strip].mute ? 0 : 1
+          value = instance.data.stripState[strip].mute ? 0 : 1
         }
 
-        instance.connection?.setStripParameter(strip, StripProperties.Mute, value)
+        instance.connection.sendCommand(`Strip[${strip}].Mute=${value}`)
       },
     },
 
@@ -1700,71 +1712,97 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
       ],
       callback: (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
+        if (strip === -1) return
+
         let value = action.options.type === 'On' ? 1 : 0
 
         if (action.options.type === 'Toggle') {
-          value = instance.strip[strip].solo ? 0 : 1
+          value = instance.data.stripState[strip].solo ? 0 : 1
         }
 
-        instance.connection?.setStripParameter(strip, StripProperties.Solo, value)
+        instance.connection.sendCommand(`Strip[${strip}].Solo=${value}`)
+      },
+    },
+
+    utilSelectBus: {
+      name: 'Util - Select Bus',
+      description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
+      options: [utilOptions.busSelect],
+      callback: (action) => {
+        instance.selectedBus = instance.selectedBus === action.options.bus ? -1 : action.options.bus
+        instance.checkFeedbacks(
+          'busEQ',
+          'busEQAB',
+          'busMeters',
+          'busMonitor',
+          'busMono',
+          'busMute',
+          'busSel',
+          'utilSelectedBus'
+        )
+        instance.variables?.updateVariables()
+      },
+    },
+
+    utilSelectStrip: {
+      name: 'Util - Select Strip',
+      description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Strip',
+          id: 'strip',
+          default: 0,
+          choices: [
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({ id: index, label: label || index + 1 + '' })),
+            { id: 8, label: 'Recorder' },
+          ],
+        },
+      ],
+      callback: (action) => {
+        instance.selectedStrip = instance.selectedStrip === action.options.strip ? -1 : action.options.strip
+        instance.checkFeedbacks('StripMeters', 'stripMono', 'stripMute', 'stripSolo', 'utilSelectedStrip', 'routing')
+        instance.variables?.updateVariables()
       },
     },
 
     vbanSettings: {
       name: 'VBAN Settings',
-      description: 'Control various settings of VBAN and each In/Out stream',
+      description:
+        'Control various settings of VBAN and each In/Out stream (Warning, disabling VBAN may disable Companions connection to Voicemeeter)',
       options: [
         {
           type: 'dropdown',
           label: 'Type',
           id: 'type',
-          default: 'vban',
+          default: 'instream',
           choices: [
-            { id: 'vban', label: 'VBAN' },
             { id: 'instream', label: 'VBAN Incoming Stream' },
             { id: 'outstream', label: 'VBAN Outgoing Stream' },
-          ]
+          ],
         },
         {
           type: 'textinput',
-          label: 'Stream Index (0 to 7)',
+          label: 'Stream Index (0 to 9)',
           id: 'index',
           default: '0',
           useVariables: true,
-          isVisible: (options) => options.type === 'instream' || options.type === 'outstream'
+          isVisible: (options) => options.type === 'instream' || options.type === 'outstream',
         },
         {
           type: 'dropdown',
           label: 'Property',
-          id: 'inProperty',
-          default: 'on',
-          choices: [
-            { id: 'on', label: 'On/Off' },
-            { id: 'name', label: 'Name' },
-            { id: 'ip', label: 'IP' },
-            { id: 'port', label: 'Port' },
-            { id: 'quality', label: 'Quality' },
-            { id: 'route', label: 'Route' },
-          ],
-          isVisible: (options) => {
-            return options.type === 'instream'
-          }
-        },
-        {
-          type: 'dropdown',
-          label: 'Property',
-          id: 'outProperty',
+          id: 'property',
           default: 'on',
           choices: [
             { id: 'on', label: 'On/Off' },
@@ -1777,19 +1815,17 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: 'quality', label: 'Quality' },
             { id: 'route', label: 'Route' },
           ],
-          isVisible: (options) => {
-            return options.type === 'outstream'
-          }
         },
         {
           type: 'dropdown',
-          label: 'Toggle/On/Off',
+          label: 'On/Off',
           id: 'adjustment',
-          default: 'Toggle',
-          choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
-          isVisible: (options) => {
-            return options.type === 'vban' || (options.type === 'instream' && options.inProperty === 'on') || (options.type === 'outstream' && options.outProperty === 'on')
-          }
+          default: 'On',
+          choices: [
+            { id: 'On', label: 'On' },
+            { id: 'Off', label: 'Off' },
+          ],
+          isVisible: (options) => options.property === 'on',
         },
         {
           type: 'textinput',
@@ -1797,7 +1833,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'name',
           default: 'StreamX',
           useVariables: true,
-          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'name') || (options.type === 'outstream' && options.outProperty === 'name')
+          isVisible: (options) => options.property === 'name',
         },
         {
           type: 'textinput',
@@ -1805,7 +1841,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'ip',
           default: '0.0.0.0',
           useVariables: true,
-          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'ip') || (options.type === 'outstream' && options.outProperty === 'ip')
+          isVisible: (options) => options.property === 'ip',
         },
         {
           type: 'textinput',
@@ -1813,7 +1849,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'port',
           default: '6980',
           useVariables: true,
-          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'port') || (options.type === 'outstream' && options.outProperty === 'port')
+          isVisible: (options) => options.property === 'port',
         },
         {
           type: 'dropdown',
@@ -1832,7 +1868,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: '88200', label: '88200 Hz' },
             { id: '96000', label: '96000 Hz' },
           ],
-          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'sr'
+          isVisible: (options) => options.type === 'outstream' && options.property === 'sr',
         },
         {
           type: 'textinput',
@@ -1840,7 +1876,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'channel',
           default: '2',
           useVariables: true,
-          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'channel'
+          isVisible: (options) => options.type === 'outstream' && options.property === 'channel',
         },
         {
           type: 'dropdown',
@@ -1851,7 +1887,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: '1', label: '16 bit PCM' },
             { id: '2', label: '24 bit PCM' },
           ],
-          isVisible: (options) => options.type === 'outstream' && options.outProperty === 'bit'
+          isVisible: (options) => options.type === 'outstream' && options.property === 'bit',
         },
         {
           type: 'dropdown',
@@ -1865,7 +1901,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             { id: '3', label: 'Slow' },
             { id: '4', label: 'Very Slow' },
           ],
-          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'quality') || (options.type === 'outstream' && options.outProperty === 'quality')
+          isVisible: (options) => options.property === 'quality',
         },
         {
           type: 'textinput',
@@ -1873,198 +1909,42 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           id: 'route',
           default: '0',
           useVariables: true,
-          isVisible: (options) => (options.type === 'instream' && options.inProperty === 'route') || (options.type === 'outstream' && options.outProperty === 'route')
+          isVisible: (options) => options.property === 'route',
         },
       ],
       callback: async (action) => {
-        if (action.options.type === 'vban') {
-          let state = instance.connection?.getVBANParameter()
-          let adjustment = state === 0 ? 1 : 0
-          if (action.options.adjustment === 'On') adjustment = 1
-          if (action.options.adjustment === 'Off') adjustment = 0
+        let index: number | string = await instance.parseVariablesInString(action.options.index)
+        index = parseInt(index, 10)
 
-          if (state !== adjustment) instance.connection?.setVBANParameter(adjustment)
-        } else {
-          let index: number | string = await instance.parseVariablesInString(action.options.index)
-          index = parseInt(index, 10)
-
-          if (isNaN(index)) {
-            instance.log('warn', `VBAN Settings must have a valid index (0 to 7)`)
-            return
-          }
-
-          if (action.options.type === 'instream') {
-            if (action.options.inProperty === 'on') {
-              let state = instance.connection?.getVBANInstreamParameter(index, VBANInstream.On)
-              let adjustment = state === 0 ? 1 : 0
-              if (action.options.adjustment === 'On') adjustment = 1
-              if (action.options.adjustment === 'Off') adjustment = 0
-              if (state !== adjustment) instance.connection?.setVBANInstreamParameter(index, VBANInstream.On, adjustment)
-            } else if (action.options.inProperty === 'name') {
-              let value = await instance.parseVariablesInString(action.options.name)
-              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Name, value)
-            } else if (action.options.inProperty === 'ip') {
-              let value = await instance.parseVariablesInString(action.options.ip)
-              instance.connection?.setVBANInstreamParameter(index, VBANInstream.IP, value)
-            } else if (action.options.inProperty === 'port') {
-              let value = await instance.parseVariablesInString(action.options.port)
-              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Port, value)
-            } else if (action.options.inProperty === 'quality') {
-              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Quality, action.options.quality)
-            } else if (action.options.inProperty === 'route') {
-              let value = await instance.parseVariablesInString(action.options.route)
-              instance.connection?.setVBANInstreamParameter(index, VBANInstream.Route, value)
-            }
-          } else {
-            if (action.options.outProperty === 'on') {
-              let state = instance.connection?.getVBANOutstreamParameter(index, VBANOutstream.On)
-              let adjustment = state === 0 ? 1 : 0
-              if (action.options.adjustment === 'On') adjustment = 1
-              if (action.options.adjustment === 'Off') adjustment = 0
-              if (state !== adjustment) instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.On, adjustment)
-            } else if (action.options.outProperty === 'name') {
-              let value = await instance.parseVariablesInString(action.options.name)
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Name, value)
-            } else if (action.options.outProperty === 'ip') {
-              let value = await instance.parseVariablesInString(action.options.ip)
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.IP, value)
-            } else if (action.options.outProperty === 'port') {
-              let value = await instance.parseVariablesInString(action.options.port)
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Port, value)
-            } else if (action.options.outProperty === 'sr') {
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.SR, action.options.sr)
-            } else if (action.options.outProperty === 'channel') {
-              let value = await instance.parseVariablesInString(action.options.channel)
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Channel, value)
-            } else if (action.options.outProperty === 'bit') {
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Bit, action.options.bit)
-            } else if (action.options.outProperty === 'quality') {
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Quality, action.options.quality)
-            } else if (action.options.outProperty === 'route') {
-              let value = await instance.parseVariablesInString(action.options.route)
-              instance.connection?.setVBANOutstreamParameter(index, VBANOutstream.Route, value)
-            }
-          }
-
-        }
-      }
-    },
-
-    macroButton: {
-      name: 'Macro Button',
-      description: '',
-      options: [
-        {
-          type: 'textinput',
-          label: 'Button ID (0 based index)',
-          id: 'id',
-          default: '0',
-          useVariables: true,
-        },
-        {
-          type: 'dropdown',
-          label: 'Type',
-          id: 'type',
-          default: 'state',
-          choices: [
-            { id: 'state', label: 'Macro Button State' },
-            { id: 'stateOnly', label: 'Change button state only' },
-            { id: 'trigger', label: 'Trigger State' },
-            { id: 'color', label: 'Color' },
-          ]
-        },
-        {
-          type: 'checkbox',
-          label: 'State',
-          id: 'state',
-          default: false,
-          isVisible: (options) => options.type !== 'color'
-        },
-        {
-          type: 'textinput',
-          label: 'Color (0 to 8)',
-          id: 'color',
-          default: '0',
-          useVariables: true,
-          isVisible: (options) => options.type === 'color'
-        },
-      ],
-      callback: async (action) => {
-        let id: number | string = await instance.parseVariablesInString(action.options.id)
-        id = parseInt(id, 10)
-
-        if (isNaN(id)) {
-          instance.log('warn', 'Macro Button id must be a number')
+        if (isNaN(index)) {
+          instance.log('warn', `VBAN Settings must have a valid index (0 to 7)`)
           return
         }
 
-        const value = action.options.state ? 1 : 0
+        let value: any = ''
 
-        if (action.options.type === 'state') {
-          instance.connection?.executeButtonAction(id, CommandButtons.State, value)
-        } else if (action.options.type === 'stateOnly') {
-          instance.connection?.executeButtonAction(id, CommandButtons.StateOnly, value)
-        } else if (action.options.type === 'trigger') {
-          instance.connection?.executeButtonAction(id, CommandButtons.Trigger, value)
-        } else {
-          const color = await instance.parseVariablesInString(action.options.color)
-          let colorTest = parseInt(color, 10)
-          if (isNaN(colorTest) || colorTest < 0 || colorTest > 8) {
-            instance.log('warn', 'Macro Button Color value must be a number 0 to 8')
-            return
-          }
-          instance.connection?.executeButtonAction(id, CommandButtons.Color, color)
+        if (action.options.property === 'on') {
+          value = action.options.adjustment === 'On' ? 1 : 0
+        } else if (action.options.property === 'name') {
+          value = await instance.parseVariablesInString(action.options.name)
+        } else if (action.options.property === 'ip') {
+          value = await instance.parseVariablesInString(action.options.ip)
+        } else if (action.options.property === 'port') {
+          value = await instance.parseVariablesInString(action.options.port)
+        } else if (action.options.property === 'quality') {
+          value = action.options.quality
+        } else if (action.options.property === 'route') {
+          value = await instance.parseVariablesInString(action.options.route)
+        } else if (action.options.property === 'sr') {
+          value = action.options.sr
+        } else if (action.options.property === 'channel') {
+          value = await instance.parseVariablesInString(action.options.channel)
+        } else if (action.options.property === 'bit') {
+          value = action.options.bit
         }
-      }
-    },
 
-    rawCommand: {
-      name: 'Send Raw Command',
-      description: `Send a raw command to Voicemeeter`,
-      options: [{
-        type: 'textinput',
-        label: 'Command',
-        id: 'command',
-        default: '',
-        useVariables: true
-      }],
-      callback: async (action) => {
-        let command = await instance.parseVariablesInString(action.options.command)
-        instance.connection?.setRaw(command)
-      }
-    },
-
-    utilSelectBus: {
-      name: 'Util - Select Bus',
-      description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
-      options: [utilOptions.busSelect],
-      callback: (action) => {
-        instance.selectedBus = instance.selectedBus === action.options.bus ? -1 : action.options.bus
-        instance.checkFeedbacks('utilSelectedBus')
-        instance.variables?.updateVariables()
+        instance.connection.sendCommand(`Vban.${action.options.type}[${index}].${action.options.property}=${value}`)
       },
     },
-
-    utilSelectStrip: {
-      name: 'Util - Select Strip',
-      description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Strip',
-          id: 'strip',
-          default: 0,
-          choices: [
-            ...instance.strip.map((strip, index) => ({ id: index, label: strip.label || index + 1 + '' })),
-            { id: 8, label: 'Recorder' },
-          ],
-        },
-      ],
-      callback: (action) => {
-        instance.selectedStrip = instance.selectedStrip === action.options.strip ? -1 : action.options.strip
-        instance.checkFeedbacks('utilSelectedStrip', 'routing')
-        instance.variables?.updateVariables()
-      },
-    }
   }
 }

@@ -10,6 +10,22 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**V2.0.0**
+- Complete revamp of modules connection to Voicemeeter, using VBAN instead of a DLL hook. This change is due to the deprecation of the libraries used to directly connect, problems with compatibility, and issues with remote connections.
+- REQUIRES Voicemeeter version 3.1.1.3 (Potato), 2.1.1.3 (Banana), or 1.1.1.3 (Standard)
+- VBANAs  provides access to less data, there is some loss of functionality. Also some Strip related data isn't populated until the first change which triggers Voicemeeter to send the data.
+- Added VBAN connection for both sending commands and getting real-time data from Voicemeeter
+- Actions
+  - `Bus - Returns` and `Recorder - Gain` - No longer support relative changes, and only supports setting a specific value.
+  - `Recorder - Position Control` - Removed Play/Stop toggle
+  - `Recorder - Arm Bus or Strip` - Removed toggle option, now has a setting for a specific state
+- Feedback - Removed the follow Feedbacks
+  - `Recorder - Arming`, `Recorder - Armed Inputs or Outputs`, `Recorder - State`, `VBAN`
+- Variables - Added the following Variables
+  - `strip_X_pitch`, `strip_X_pitch_value`, `strip_X_pitch_drywet`, `strip_X_pitch_formant_lo`, `strip_X_pitch_formant_med`, `strip_X_pitch_formant_hi`
+- Variables - Removed the following Variables
+  - `bus_X_return_reverb`, `bus_X_return_delay`, `bus_X_return_fx1`, `bus_X_return_fx2`, `strip_X_compressor`, `strip_X_gate`
+
 **V1.3.0**
 - Added `VBAN Settings`, `Macro Button`, and `Send Raw Command`, actions
 - Added `VBAN` feedback

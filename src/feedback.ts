@@ -1,14 +1,14 @@
 import VoicemeeterInstance from './index'
 import { presets } from 'companion-module-utils'
-import { getOptions } from './utils'
+import { getOptions, decibelToLinear } from './utils'
 import {
-  combineRgb,
   CompanionAdvancedFeedbackResult,
   CompanionFeedbackButtonStyleResult,
   CompanionFeedbackAdvancedEvent,
   CompanionFeedbackBooleanEvent,
   CompanionFeedbackContext,
   SomeCompanionFeedbackInputField,
+  combineRgb,
 } from '@companion-module/base'
 
 export interface VoicemeeterFeedbacks {
@@ -18,14 +18,10 @@ export interface VoicemeeterFeedbacks {
   busMono: VoicemeeterFeedback<BusMonoCallback>
   busMute: VoicemeeterFeedback<BusMuteCallback>
   busSel: VoicemeeterFeedback<BusSelCallback>
-  recorderArm: VoicemeeterFeedback<RecorderArmCallback>
-  recorderArmInputOutput: VoicemeeterFeedback<RecorderArmInputOutputCallback>
-  recorderState: VoicemeeterFeedback<RecorderStateCallback>
   routing: VoicemeeterFeedback<RoutingCallback>
   stripMono: VoicemeeterFeedback<StripMonoCallback>
   stripMute: VoicemeeterFeedback<StripMuteCallback>
   stripSolo: VoicemeeterFeedback<StripSoloCallback>
-  vban: VoicemeeterFeedback<VbanCallback>
   utilSelectedBus: VoicemeeterFeedback<UtilSelectedBusCallback>
   utilSelectedStrip: VoicemeeterFeedback<UtilSelectedStripCallback>
 
@@ -44,7 +40,14 @@ interface BusEQABCallback {
   feedbackId: 'busEQAB'
   options: Readonly<{
     bus: number
-    mode: 'A' | 'B'
+    mode: 0 | 1
+  }>
+}
+
+interface BusMetersCallback {
+  feedbackId: 'busMeters'
+  options: Readonly<{
+    bus: number
   }>
 }
 
@@ -76,6 +79,21 @@ interface BusSelCallback {
   }>
 }
 
+interface RoutingCallback {
+  feedbackId: 'routing'
+  options: Readonly<{
+    source: number
+    destination: RoutingDestination
+  }>
+}
+
+interface StripMetersCallback {
+  feedbackId: 'StripMeters'
+  options: Readonly<{
+    strip: number
+  }>
+}
+
 interface StripMonoCallback {
   feedbackId: 'stripMono'
   options: Readonly<{
@@ -97,47 +115,6 @@ interface StripSoloCallback {
   }>
 }
 
-interface RecorderArmCallback {
-  feedbackId: 'recorderState'
-  options: Readonly<{
-    type: string
-  }>
-}
-
-interface RecorderArmInputOutputCallback {
-  feedbackId: 'recorderArmInputOutput'
-  options: Readonly<{
-    type: 'strip' | 'bus'
-  }>
-}
-
-interface RecorderStateCallback {
-  feedbackId: 'recorderState'
-  options: Readonly<{
-    type: 'play' | 'stop' | 'record' | 'rewind' | 'fastForward' | 'modeLoop'
-  }>
-}
-
-interface RoutingCallback {
-  feedbackId: 'routing'
-  options: Readonly<{
-    source: number
-    destination: RoutingDestination
-  }>
-}
-
-type RoutingDestination = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
-
-interface VbanCallback {
-  feedbackId: 'vban'
-  options: Readonly<{
-    type: 'vban' | 'instream' | 'outstream'
-    index: string
-    property: 'on' | 'route'
-    route: string
-  }>
-}
-
 interface UtilSelectedBusCallback {
   feedbackId: 'utilSelectedBus'
   options: Readonly<{
@@ -152,22 +129,21 @@ interface UtilSelectedStripCallback {
   }>
 }
 
-// Callback type for Presets
+type RoutingDestination = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
+
 export type FeedbackCallbacks =
   | BusEQCallback
   | BusEQABCallback
+  | BusMetersCallback
   | BusMonitorCallback
   | BusMonoCallback
   | BusMuteCallback
   | BusSelCallback
-  | RecorderArmCallback
-  | RecorderArmInputOutputCallback
-  | RecorderStateCallback
   | RoutingCallback
+  | StripMetersCallback
   | StripMonoCallback
   | StripMuteCallback
   | StripSoloCallback
-  | VbanCallback
   | UtilSelectedBusCallback
   | UtilSelectedStripCallback
 
@@ -211,7 +187,7 @@ interface VoicemeeterFeedbackAdvanced<T> {
 export type VoicemeeterFeedback<T> = VoicemeeterFeedbackBoolean<T> | VoicemeeterFeedbackAdvanced<T>
 
 export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedbacks {
-  const utilOptions = getOptions(instance)
+  const utilOptions = getOptions()
 
   return {
     busEQ: {
@@ -233,7 +209,8 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback) => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return instance.bus[bus]?.eq
+        if (!instance.data.busState[bus]) return false
+        return instance.data.busState[bus]?.eq
       },
     },
 
@@ -266,7 +243,8 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback) => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return instance.bus[bus]?.eqAB === !!feedback.options.mode
+        if (!instance.data.busState[bus]) return false
+        return feedback.options.mode === 1 ? instance.data.busState[bus]?.eqB : !instance.data.busState[bus]?.eqB
       },
     },
 
@@ -285,21 +263,16 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       ],
       callback: (feedback) => {
         const busId = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        const bus = instance.bus[busId]
+        const bus = instance.data.outputLeveldB100[busId]
 
         if (!bus) return {}
-
-        const volumeToLinear = (volume: number): number => {
-          return Math.pow(volume / 100, 0.25) * 100
-        }
-
 
         const meter = presets.meter1({
           width: feedback.image.width,
           height: feedback.image.height,
-          meter1: volumeToLinear(bus.levels[0] * 100),
-          meter2: volumeToLinear(bus.levels[1] * 100),
-          muted: bus.mute,
+          meter1: decibelToLinear(bus[0]),
+          meter2: decibelToLinear(bus[1]),
+          muted: instance.data.busState[busId]?.mute,
         })
 
         return {
@@ -327,7 +300,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback) => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return !!instance.bus[bus]?.monitor
+        return instance.data.busState[bus]?.monitor
       },
     },
 
@@ -350,7 +323,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback) => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return instance.bus[bus]?.mono
+        return instance.data.busState[bus]?.mono
       },
     },
 
@@ -383,7 +356,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback): boolean => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return instance.bus[bus]?.mute
+        return instance.data.busState[bus]?.mute
       },
     },
 
@@ -406,98 +379,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback) => {
         const bus = feedback.options.bus === -1 ? instance.selectedBus : feedback.options.bus
-        return instance.bus[bus]?.sel
-      },
-    },
-
-    recorderArm: {
-      type: 'boolean',
-      name: 'Recorder - Arming',
-      description: 'Indicate if a Bus or Strip is Armed',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Type',
-          id: 'type',
-          default: 'ArmStrip0',
-          choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: `ArmStrip${index}`,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-            })),
-            { id: 'ArmBus0', label: 'A1' },
-            { id: 'ArmBus1', label: 'A2' },
-            { id: 'ArmBus2', label: 'A3' },
-            { id: 'ArmBus3', label: 'A4' },
-            { id: 'ArmBus4', label: 'A5' },
-            { id: 'ArmBus5', label: 'B1' },
-            { id: 'ArmBus6', label: 'B2' },
-            { id: 'ArmBus7', label: 'B3' },
-          ],
-        },
-      ],
-      defaultStyle: {
-        color: combineRgb(0, 0, 0),
-        bgcolor: combineRgb(0, 255, 0),
-      },
-      callback: (feedback) => {
-        return instance.recorder[feedback.options.type] === 1
-      },
-    },
-
-    recorderArmInputOutput: {
-      type: 'boolean',
-      name: 'Recorder - Armed Inputs or Outputs',
-      description: 'Indicate if Pre-Fader Inputs are Armed, or Post-Fader Outputs',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Type',
-          id: 'type',
-          default: 'strip',
-          choices: [
-            { id: 'strip', label: 'Pre-Fader Inputs' },
-            { id: 'bus', label: 'Post-Fader Outputs' },
-          ],
-        },
-      ],
-      defaultStyle: {
-        color: combineRgb(255, 255, 255),
-        bgcolor: combineRgb(64, 0, 0),
-      },
-      callback: (feedback) => {
-        return feedback.options.type === 'strip'
-          ? instance.recorder.modeRecBus === 0
-          : instance.recorder.modeRecBus === 1
-      },
-    },
-
-    recorderState: {
-      type: 'boolean',
-      name: 'Recorder - State',
-      description: 'Indicates the current state of the Recorder',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Type',
-          id: 'type',
-          default: 'play',
-          choices: [
-            { id: 'play', label: 'Play' },
-            { id: 'stop', label: 'Stop' },
-            { id: 'record', label: 'Recording' },
-            { id: 'rewind', label: 'Rewind' },
-            { id: 'fastForward', label: 'FastForward' },
-            { id: 'modeLoop', label: 'Loop' },
-          ],
-        },
-      ],
-      defaultStyle: {
-        color: combineRgb(0, 0, 0),
-        bgcolor: combineRgb(0, 255, 0),
-      },
-      callback: (feedback) => {
-        return instance.recorder[feedback.options.type] === 1
+        return instance.data.busState[bus]?.sel
       },
     },
 
@@ -520,7 +402,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
             { id: 5, label: 'Aux 1' },
             { id: 6, label: 'Aux 2' },
             { id: 7, label: 'Aux 3' },
-            { id: 8, label: 'Recorder' },
+            //{ id: 8, label: 'Recorder' },
             { id: 9, label: 'Selected' },
           ],
         },
@@ -538,11 +420,47 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback): boolean => {
         const source = feedback.options.source === 9 ? instance.selectedStrip : feedback.options.source
+        const destination = `bus${feedback.options.destination}`
 
-        if (source === 8) {
-          return instance.recorder?.[feedback.options.destination]
-        } else {
-          return instance.strip[source]?.[feedback.options.destination]
+        return instance.data.stripState[source]?.[destination]
+      },
+    },
+
+    stripMeters: {
+      type: 'advanced',
+      name: 'Strip - Meters',
+      description: 'Strip Volume Meters',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Strip',
+          id: 'strip',
+          default: -1,
+          choices: [
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: index,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
+            { id: -1, label: 'Selected' },
+          ],
+        },
+      ],
+      callback: (feedback) => {
+        const stripId = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
+        const strip = instance.data.inputLeveldB100[stripId]
+
+        if (!strip) return {}
+
+        const meter = presets.meter1({
+          width: feedback.image.width,
+          height: feedback.image.height,
+          meter1: decibelToLinear(strip[0]),
+          meter2: decibelToLinear(strip[1]),
+          muted: instance.data.stripState[stripId]?.mute,
+        })
+
+        return {
+          imageBuffer: meter,
         }
       },
     },
@@ -558,11 +476,11 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
               id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
+            // { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
@@ -573,7 +491,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback): boolean => {
         const strip = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
-        return instance.strip[strip]?.mono
+        return instance.data.stripState[strip]?.mono
       },
     },
 
@@ -588,11 +506,11 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
               id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
+            // { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
@@ -603,50 +521,7 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback): boolean => {
         const strip = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
-        return instance.strip[strip]?.mute
-      },
-    },
-
-    stripMeters: {
-      type: 'advanced',
-      name: 'Strip - Meters',
-      description: 'Strip Volume Meters',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Strip',
-          id: 'strip',
-          default: -1,
-          choices: [
-            ...instance.strip.map((strip, index) => ({
-              id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
-            })),
-            { id: -1, label: 'Selected' },
-          ],
-        },
-      ],
-      callback: (feedback) => {
-        const stripId = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
-        const strip = instance.strip[stripId]
-
-        if (!strip) return {}
-
-        const volumeToLinear = (volume: number): number => {
-          return Math.pow(volume / 100, 0.25) * 100
-        }
-
-        const meter = presets.meter1({
-          width: feedback.image.width,
-          height: feedback.image.height,
-          meter1: volumeToLinear(strip.levels[0] * 100),
-          meter2: volumeToLinear(strip.levels[1] * 100),
-          muted: strip.mute,
-        })
-
-        return {
-          imageBuffer: meter,
-        }
+        return instance.data.stripState[strip]?.mute
       },
     },
 
@@ -661,11 +536,11 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           id: 'strip',
           default: -1,
           choices: [
-            ...instance.strip.map((strip, index) => ({
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
               id: index,
-              label: strip.label ? `Strip ${index + 1}: ${strip.label}` : `${index + 1}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
             })),
-            { id: 9, label: 'Recorder' },
+            // { id: 9, label: 'Recorder' },
             { id: -1, label: 'Selected' },
           ],
         },
@@ -676,82 +551,9 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
       },
       callback: (feedback): boolean => {
         const strip = feedback.options.strip === -1 ? instance.selectedStrip : feedback.options.strip
-        return instance.strip[strip]?.solo
+
+        return instance.data.stripState[strip]?.solo
       },
-    },
-
-    vban: {
-      type: 'boolean',
-      name: 'VBAN',
-      description: 'Indicate the VBAN, or VBAN Stream, state',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Type',
-          id: 'type',
-          default: 'vban',
-          choices: [
-            { id: 'vban', label: 'VBAN' },
-            { id: 'instream', label: 'VBAN Incoming Stream' },
-            { id: 'outstream', label: 'VBAN Outgoing Stream' },
-          ]
-        },
-        {
-          type: 'textinput',
-          label: 'Stream Index (0 to 7)',
-          id: 'index',
-          default: '0',
-          useVariables: true,
-          isVisible: (options) => options.type !== 'vban'
-        },
-        {
-          type: 'dropdown',
-          label: 'Property',
-          id: 'property',
-          default: 'on',
-          choices: [
-            { id: 'on', label: 'On/Off' },
-            { id: 'route', label: 'Route' },
-          ],
-          isVisible: (options) => {
-            return options.type !== 'vban'
-          }
-        },
-        {
-          type: 'textinput',
-          label: 'Strip/Bus (0 to 8)',
-          id: 'route',
-          default: '0',
-          useVariables: true,
-          isVisible: (options) => options.type !== 'vban' && options.property === 'route'
-        },
-      ],
-      defaultStyle: {
-        color: combineRgb(0, 0, 0),
-        bgcolor: combineRgb(0, 255, 0),
-      },
-      callback: async (feedback) => {
-        if (feedback.options.type === 'vban') {
-          return instance.vban.on === 1
-        } else {
-          let index: number | string = await instance.parseVariablesInString(feedback.options.index)
-          index = parseInt(index, 10)
-
-          if (isNaN(index)) {
-            instance.log('warn', `VBAN streams must have a valid index (0 to 7)`)
-            return false
-          }
-
-          if (feedback.options.property === 'on') {
-            return instance.vban[feedback.options.type][index]?.on === 1
-          } else {
-            let route: number | string = await instance.parseVariablesInString(feedback.options.route)
-            route = parseInt(route, 10)
-
-            return instance.vban[feedback.options.type][index]?.route === route
-          }
-        }
-      }
     },
 
     utilSelectedBus: {
@@ -779,8 +581,10 @@ export function getFeedbacks(instance: VoicemeeterInstance): VoicemeeterFeedback
           id: 'strip',
           default: 0,
           choices: [
-            ...instance.strip.map((strip, index) => ({ id: index, label: strip.label || index + 1 + '' })),
-            { id: 8, label: 'Recorder' },
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: index,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
           ],
         },
       ],

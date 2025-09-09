@@ -10,7 +10,10 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
-**V2.0.0**
+**v2.1.0**
+- Minor fix to variable definitions to improve performance
+
+**v2.0.0**
 - Complete revamp of modules connection to Voicemeeter, using VBAN instead of a DLL hook. This change is due to the deprecation of the libraries used to directly connect, problems with compatibility, and issues with remote connections.
 - REQUIRES Voicemeeter version 3.1.1.3 (Potato), 2.1.1.3 (Banana), or 1.1.1.3 (Standard)
 - VBANAs  provides access to less data, there is some loss of functionality. Also some Strip related data isn't populated until the first change which triggers Voicemeeter to send the data.
@@ -26,7 +29,7 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 - Variables - Removed the following Variables
   - `bus_X_return_reverb`, `bus_X_return_delay`, `bus_X_return_fx1`, `bus_X_return_fx2`, `strip_X_compressor`, `strip_X_gate`
 
-**V1.3.0**
+**v1.3.0**
 - Added `VBAN Settings`, `Macro Button`, and `Send Raw Command`, actions
 - Added `VBAN` feedback
 - Added Variables (`TYPE` is `instream` or `outstream`, and `INDEX` is 0 to 7)
@@ -34,10 +37,10 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
   - `vban_TYPE_INDEX_on`, `vban_TYPE_INDEX_name`, `vban_TYPE_INDEX_ip`, `vban_TYPE_INDEX_port`, `vban_TYPE_INDEX_sr`, `vban_TYPE_INDEX_channel`, `vban_TYPE_INDEX_bit`, `vban_TYPE_INDEX_quality`, `vban_TYPE_INDEX_route`
 - Minor bug fixes
 
-**V1.2.1**
+**v1.2.1**
 - Added node-gyp dependency
 
-**V1.2.0**
+**v1.2.0**
 - Some Feature update and fixes contributed by @PI3RRE01
 - Fixed recorder load, and gain, actions
 - Fixed issue when using proxy

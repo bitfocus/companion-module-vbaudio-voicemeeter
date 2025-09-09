@@ -15,7 +15,7 @@ export class Variables {
   }
 
   /**
-   * @param variables Object of variablenames and their values
+   * @param variables Object of variable names and their values
    * @description Updates or removes variable for current instance
    */
   public readonly set = (variables: InstanceVariableValue): void => {
@@ -36,7 +36,7 @@ export class Variables {
     const variables: Set<CompanionVariableDefinition> = new Set([])
 
     variables.add({ name: 'Type', variableId: 'type' })
-    variables.add({ name: 'Verison', variableId: 'version' })
+    variables.add({ name: 'Version', variableId: 'version' })
     variables.add({ name: 'Util Selected Bus', variableId: 'util_selected_bus' })
     variables.add({ name: 'Util Selected Strip', variableId: 'util_selected_strip' })
 

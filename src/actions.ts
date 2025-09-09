@@ -1,5 +1,4 @@
 import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
-//import { BusProperties, CommandButtons, RecorderProperties, StripProperties, VBANInstream, VBANOutstream } from 'voicemeeter-connector'
 import VoicemeeterInstance from './index'
 import { getOptions } from './utils'
 

@@ -262,6 +262,5 @@ export class Variables {
     }
 
     this.set(newVariables)
-    this.updateDefinitions()
   }
 }

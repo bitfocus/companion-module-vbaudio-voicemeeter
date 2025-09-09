@@ -59,6 +59,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
     await this.configUpdated(config)
 
     this.variables = new Variables(this)
+    this.variables.updateDefinitions()
   }
 
   /**

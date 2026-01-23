@@ -118,19 +118,7 @@ export interface StripState {
 export interface BusState {
   mute: boolean
   mono: boolean
-  mode:
-    | 'normal'
-    | 'mixdownA'
-    | 'mixdownB'
-    | 'repeat'
-    | 'composite'
-    | 'upmixtv'
-    | 'upmixtv2'
-    | 'upmixtv4'
-    | 'upmixtv6'
-    | 'center'
-    | 'lfe'
-    | 'rear'
+  mode: 'normal' | 'mixdownA' | 'mixdownB' | 'repeat' | 'composite' | 'upmixtv' | 'upmixtv2' | 'upmixtv4' | 'upmixtv6' | 'center' | 'lfe' | 'rear'
   mask: boolean
   eq: boolean
   cross: boolean
@@ -249,6 +237,17 @@ export class VBAN {
     this.started = true
   }
 
+  // Trigger a forced update from the RT Service
+  private forceUpdate = () => {
+    if (!this.instance.data.stripState[0]) return
+
+    const currentValue = this.instance.data.stripState[0].mono
+    this.sendCommand(`Strip[0].Mono=${currentValue ? '0' : '1'}`, true)
+    setTimeout(() => {
+      this.sendCommand(`Strip[0].Mono=${currentValue ? '1' : '0'}`, true)
+    }, 50)
+  }
+
   private parseMessage = (msg: Buffer): void => {
     const header = {
       vban: msg.subarray(0, 4).toString(),
@@ -269,9 +268,7 @@ export class VBAN {
       }
 
       const parseVersion = (x: Buffer) => {
-        return `${parseNumber(x.subarray(0, 1))}.${parseNumber(x.subarray(1, 2))}.${parseNumber(
-          x.subarray(2, 3)
-        )}.${parseNumber(x.subarray(3, 4))}`
+        return `${parseNumber(x.subarray(0, 1))}.${parseNumber(x.subarray(1, 2))}.${parseNumber(x.subarray(2, 3))}.${parseNumber(x.subarray(3, 4))}`
       }
 
       if (header.function === 0) {
@@ -307,9 +304,7 @@ export class VBAN {
 
         for (let i = 0; i < 5; i++) {
           const start = 16 + i * 4
-          const levels = [payload.subarray(start, start + 2), payload.subarray(start + 2, start + 4)].map(
-            (x) => parseNumber(x.reverse(), 1200) / 100
-          )
+          const levels = [payload.subarray(start, start + 2), payload.subarray(start + 2, start + 4)].map((x) => parseNumber(x.reverse(), 1200) / 100)
           newData.inputLeveldB100.push(levels)
         }
 
@@ -427,9 +422,7 @@ export class VBAN {
           const start = 280 + i * 16
           for (let x = 0; x < 8; x++) {
             const offset = start + x * 2
-            newData[`stripGaindB100Layer${i + 1}`].push(
-              parseNumber(payload.subarray(offset, offset + 2).reverse(), 1200) / 100
-            )
+            newData[`stripGaindB100Layer${i + 1}`].push(parseNumber(payload.subarray(offset, offset + 2).reverse(), 1200) / 100)
           }
         }
 
@@ -444,7 +437,7 @@ export class VBAN {
             payload
               .subarray(start, start + 60)
               .toString()
-              .replace(/\x00/g, '')
+              .replace(/\x00/g, ''),
           )
         }
 
@@ -454,11 +447,15 @@ export class VBAN {
             payload
               .subarray(start, start + 60)
               .toString()
-              .replace(/\x00/g, '')
+              .replace(/\x00/g, ''),
           )
         }
 
         this.updateData(newData, 0)
+
+        if (!this.connected) {
+          this.forceUpdate()
+        }
 
         this.connected = true
       } else if (header.function === 1) {
@@ -518,9 +515,9 @@ export class VBAN {
             posColor_y: modeValue(payload.subarray(start + 16, start + 18).reverse(), 100) / 100,
             posMod_x: modeValue(payload.subarray(start + 114, start + 116).reverse()) / 100,
             posMox_y: modeValue(payload.subarray(start + 116, start + 118).reverse(), 100) / 100,
-            EQgain1: parseNumber(payload.subarray(start + 18, start + 20).reverse()),
-            EQgain2: parseNumber(payload.subarray(start + 20, start + 22).reverse()),
-            EQgain3: parseNumber(payload.subarray(start + 22, start + 24).reverse()),
+            EQgain1: modeValue(payload.subarray(start + 18, start + 20).reverse(), 1200) / 100,
+            EQgain2: modeValue(payload.subarray(start + 20, start + 22).reverse(), 1200) / 100,
+            EQgain3: modeValue(payload.subarray(start + 22, start + 24).reverse(), 1200) / 100,
             PEQ: [],
             sendReverb: parseNumber(payload.subarray(start + 118, start + 120).reverse()) / 100,
             sendDelay: parseNumber(payload.subarray(start + 120, start + 122).reverse()) / 100,
@@ -640,8 +637,7 @@ export class VBAN {
     this.server.send(createRTPacket(0x00), this.instance.config.port, this.instance.config.host, (err) => {
       this.disconnectTimer = setTimeout(() => {
         this.disconnectCount++
-        if (this.disconnectCount > 1)
-          this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
+        if (this.disconnectCount > 1) this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
       }, 4000)
 
       this.instance.log('debug', 'Sent Register RTPacket message')
@@ -660,7 +656,7 @@ export class VBAN {
     })
   }
 
-  public sendCommand = (command: string): void => {
+  public sendCommand = (command: string, forcedUpdate = false): void => {
     const stream = Buffer.from(`${this.instance.config.commandStream}`.padEnd(16, '\0') + '\x01\x00\x00\x00')
 
     // Define the VBAN protocol header
@@ -689,7 +685,7 @@ export class VBAN {
       if (err) {
         this.instance.log('warn', `Sending command err: ${err.message}`)
       } else {
-        this.instance.log('info', `Sent command: ${command}`)
+        this.instance.log(forcedUpdate ? 'debug' : 'info', `Sent command: ${command}`)
       }
     })
   }
@@ -699,20 +695,16 @@ export class VBAN {
       const data = newData as VBANData
       if (JSON.stringify(newData) === JSON.stringify(this.instance.data)) return
 
-      const stripLevelChange =
-        JSON.stringify(data.inputLeveldB100) !== JSON.stringify(this.instance.data.inputLeveldB100)
-      const busLevelChange =
-        JSON.stringify(data.outputLeveldB100) !== JSON.stringify(this.instance.data.outputLeveldB100)
+      const stripLevelChange = JSON.stringify(data.inputLeveldB100) !== JSON.stringify(this.instance.data.inputLeveldB100)
+      const busLevelChange = JSON.stringify(data.outputLeveldB100) !== JSON.stringify(this.instance.data.outputLeveldB100)
       const stripStateChange = JSON.stringify(data.stripState) !== JSON.stringify(this.instance.data.stripState)
       const busStateChange = JSON.stringify(data.busState) !== JSON.stringify(this.instance.data.busState)
-      const stripLabelChange =
-        JSON.stringify(data.stripLabelUTF8c60) !== JSON.stringify(this.instance.data.stripLabelUTF8c60)
+      const stripLabelChange = JSON.stringify(data.stripLabelUTF8c60) !== JSON.stringify(this.instance.data.stripLabelUTF8c60)
       const busLabelChange = JSON.stringify(data.busLabelUTF8c60) !== JSON.stringify(this.instance.data.busLabelUTF8c60)
 
       const feedbackUpdates = []
       if (stripStateChange) feedbackUpdates.push('stripMono', 'stripMute', 'stripSolo', 'routing')
-      if (busStateChange)
-        feedbackUpdates.push('busEQ', 'busEQAB', 'busEQABCallback', 'busMonitor', 'busMono', 'busMute', 'busSel')
+      if (busStateChange) feedbackUpdates.push('busEQ', 'busEQAB', 'busEQABCallback', 'busMonitor', 'busMono', 'busMute', 'busSel')
 
       this.instance.data = { ...(newData as VBANData), stripData: this.instance.data.stripData }
 

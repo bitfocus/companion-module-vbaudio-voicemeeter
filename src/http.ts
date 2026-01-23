@@ -29,6 +29,11 @@ export const httpHandler = async (
     body: JSON.stringify({ status: 404, message: 'Not Found' }),
   }
 
+	const getData = () => {
+    response.status = 200
+    response.body = JSON.stringify(instance.data, null, 2)
+	}
+
   const getVariables = () => {
     const data = instance.variables?.currentVariables || {}
 
@@ -38,6 +43,7 @@ export const httpHandler = async (
 
   const endpoints: Endpoints = {
     GET: {
+			data: getData,
       variables: getVariables,
     },
     POST: {},

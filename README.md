@@ -10,6 +10,12 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**v2.2.0**
+- Added `Strip - EQ Gain 1 to 3 (Virtual Strips)` Action for setting the 3 EQ settings on Virtual Strips
+- Added a solution to force an update of data from Voicemeeter on launch
+- Added `/data` HTTP endpoint for retrieving all current Voicemeeter data in JSON format
+- Fixed issue with several variables having incorrect values
+
 **v2.1.0**
 - Minor fix to variable definitions to improve performance
 

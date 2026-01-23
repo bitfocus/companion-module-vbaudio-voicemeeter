@@ -170,8 +170,8 @@ export class Variables {
   public readonly updateVariables = async (): Promise<void> => {
     const newVariables: InstanceVariableValue = {}
 
-    newVariables.type = this.instance.type
-    newVariables.version = this.instance.version
+    newVariables.type = this.instance.data.voicemeeterType
+    newVariables.version = this.instance.data.voicemeeterVersion
     newVariables.util_selected_bus = this.instance.selectedBus === -1 ? '' : busName[this.instance.selectedBus]
     newVariables.util_selected_strip = ''
     if (this.instance.selectedStrip !== -1) {

@@ -13,7 +13,6 @@ import { getFeedbacks } from './feedback'
 import { httpHandler } from './http'
 import { getPresets } from './presets'
 import { getUpgrades } from './upgrade'
-import { VoicemeeterType } from './utils'
 import { Variables } from './variables'
 import { defaultData, VBAN, VBANData } from './vban'
 
@@ -25,14 +24,11 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   public data: VBANData = defaultData
   public selectedBus = -1
   public selectedStrip = -1
-  public type: VoicemeeterType = ''
   public connection = new VBAN(this)
-  public version = ''
 
   constructor(internal: unknown) {
     super(internal)
     this.connection.init()
-    //this.instanceOptions.disableVariableValidation = true
   }
 
   public config: Config = {

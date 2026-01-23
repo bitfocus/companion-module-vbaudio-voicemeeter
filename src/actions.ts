@@ -23,6 +23,7 @@ export interface VoicemeeterActions {
   routeAudio: VoicemeeterAction<RouteAudioCallback>
   stripCompressor: VoicemeeterAction<StripCompressorCallback>
   stripDenoiser: VoicemeeterAction<StripDenoiserCallback>
+  stripEQGain: VoicemeeterAction<StripEQGainCallback>
   stripGain: VoicemeeterAction<StripGainCallback>
   stripGate: VoicemeeterAction<StripGateCallback>
   stripMono: VoicemeeterAction<StripMonoCallback>
@@ -65,21 +66,7 @@ interface BusGainCallback {
 interface BusModeCallback {
   actionId: 'busMode'
   options: Readonly<{
-    mode:
-      | 'normal'
-      | 'Amix'
-      | 'Bmix'
-      | 'Repeat'
-      | 'Composite'
-      | 'TVMix'
-      | 'UpMix21'
-      | 'UpMix41'
-      | 'UpMix61'
-      | 'CenterOnly'
-      | 'LFEOnly'
-      | 'RearOnly'
-      | 'next'
-      | 'prev'
+    mode: 'normal' | 'Amix' | 'Bmix' | 'Repeat' | 'Composite' | 'TVMix' | 'UpMix21' | 'UpMix41' | 'UpMix61' | 'CenterOnly' | 'LFEOnly' | 'RearOnly' | 'next' | 'prev'
     bus: number
   }>
 }
@@ -217,16 +204,7 @@ interface RouteAudioCallback {
 interface StripCompressorCallback {
   actionId: 'stripCompressor'
   options: Readonly<{
-    setting:
-      | 'comp'
-      | 'compGainIn'
-      | 'compRatio'
-      | 'compThreshold'
-      | 'compAttack'
-      | 'compRelease'
-      | 'compKnee'
-      | 'compGainOut'
-      | 'compMakeUp'
+    setting: 'comp' | 'compGainIn' | 'compRatio' | 'compThreshold' | 'compAttack' | 'compRelease' | 'compKnee' | 'compGainOut' | 'compMakeUp'
     strip: number
     adjustment: 'Set' | 'Increase' | 'Decrease'
     comp: string
@@ -245,6 +223,16 @@ interface StripDenoiserCallback {
   actionId: 'stripDenoiser'
   options: Readonly<{
     strip: number
+    adjustment: 'Set' | 'Increase' | 'Decrease'
+    value: string
+  }>
+}
+
+interface StripEQGainCallback {
+  actionId: 'stripEQGain'
+  options: Readonly<{
+    strip: number
+    freq: 1 | 2 | 3
     adjustment: 'Set' | 'Increase' | 'Decrease'
     value: string
   }>
@@ -353,6 +341,7 @@ export type ActionCallbacks =
   | RouteAudioCallback
   | StripCompressorCallback
   | StripDenoiserCallback
+  | StripEQGainCallback
   | StripGainCallback
   | StripGateCallback
   | StripMonoCallback
@@ -558,35 +547,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
-        const modes = [
-          'normal',
-          'Amix',
-          'Bmix',
-          'Repeat',
-          'Composite',
-          'TVMix',
-          'UpMix21',
-          'UpMix41',
-          'UpMix61',
-          'CenterOnly',
-          'LFEOnly',
-          'RearOnly',
-        ]
+        const modes = ['normal', 'Amix', 'Bmix', 'Repeat', 'Composite', 'TVMix', 'UpMix21', 'UpMix41', 'UpMix61', 'CenterOnly', 'LFEOnly', 'RearOnly']
 
-        const rtPacketModes = [
-          'normal',
-          'mixdownA',
-          'mixdownB',
-          'repeat',
-          'composite',
-          'upmixtv',
-          'upmixtv2',
-          'upmixtv4',
-          'upmixtv6',
-          'center',
-          'lfe',
-          'rear',
-        ]
+        const rtPacketModes = ['normal', 'mixdownA', 'mixdownB', 'repeat', 'composite', 'upmixtv', 'upmixtv2', 'upmixtv4', 'upmixtv6', 'center', 'lfe', 'rear']
 
         const index = rtPacketModes.indexOf(instance.data.busState[bus].mode)
         let newMode = ''
@@ -1146,9 +1109,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (source === -1) return
 
         if (source === 8) {
-          instance.connection.sendCommand(
-            `Recorder.[${action.options.destination}]=${action.options.recorderType === 'On' ? 1 : 0}`
-          )
+          instance.connection.sendCommand(`Recorder.[${action.options.destination}]=${action.options.recorderType === 'On' ? 1 : 0}`)
         } else {
           let newValue = instance.data.stripState[source][`bus${action.options.destination}`] ? 0 : 1
           if (action.options.type === 'On') newValue = 1
@@ -1401,6 +1362,88 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (newValue < 0) newValue = 0
         if (newValue > 10) newValue = 10
         instance.connection.sendCommand(`Strip[${stripId}].Denoiser=${newValue}`)
+      },
+    },
+
+    stripEQGain: {
+      name: 'Strip - EQ Gain 1 to 3 (Virtual Strips)',
+      description: '',
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Strip',
+          id: 'strip',
+          default: -1,
+          choices: [
+            ...instance.data.stripLabelUTF8c60.map((label, index) => ({
+              id: `${index}`,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
+            { id: -1, label: 'Selected' },
+          ],
+        },
+        {
+          type: 'dropdown',
+          label: 'Frequency',
+          id: 'freq',
+          default: 3,
+          choices: [
+            { id: 3, label: 'Trebble' },
+            { id: 2, label: 'Mid' },
+            { id: 1, label: 'Bass' },
+          ],
+        },
+        {
+          type: 'dropdown',
+          label: 'Adjustment',
+          id: 'adjustment',
+          default: 'Set',
+          choices: [
+            { id: 'Set', label: 'Set' },
+            { id: 'Increase', label: 'Increase' },
+            { id: 'Decrease', label: 'Decrease' },
+          ],
+        },
+        {
+          type: 'textinput',
+          label: 'EQ -12 to 12',
+          id: 'value',
+          default: '0',
+          useVariables: true,
+        },
+      ],
+      callback: async (action) => {
+        const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
+        if (stripId === -1) return
+
+        let value: string | number = await instance.parseVariablesInString(action.options.value)
+
+        value = parseFloat(value)
+
+        if (isNaN(value)) {
+          instance.log('warn', `Invalid EQ Value: ${value}`)
+          return
+        }
+
+				let currentValue = 0
+				if (action.options.freq === 1) currentValue = instance.data.stripData[stripId].EQgain1
+				if (action.options.freq === 2) currentValue = instance.data.stripData[stripId].EQgain2
+				if (action.options.freq === 3) currentValue = instance.data.stripData[stripId].EQgain3
+
+        let newValue
+
+        if (action.options.adjustment === 'Set') {
+          newValue = value
+        } else if (action.options.adjustment === 'Increase') {
+          newValue = currentValue + value
+        } else {
+          newValue = currentValue - value
+        }
+
+        if (newValue < -12) newValue = -12
+        if (newValue > 12) newValue = 12
+
+        instance.connection.sendCommand(`Strip[${stripId}].EQGain${action.options.freq}=${newValue}`)
       },
     },
 
@@ -1739,16 +1782,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       options: [utilOptions.busSelect],
       callback: (action) => {
         instance.selectedBus = instance.selectedBus === action.options.bus ? -1 : action.options.bus
-        instance.checkFeedbacks(
-          'busEQ',
-          'busEQAB',
-          'busMeters',
-          'busMonitor',
-          'busMono',
-          'busMute',
-          'busSel',
-          'utilSelectedBus'
-        )
+        instance.checkFeedbacks('busEQ', 'busEQAB', 'busMeters', 'busMonitor', 'busMono', 'busMute', 'busSel', 'utilSelectedBus')
         instance.variables?.updateVariables()
       },
     },
@@ -1762,10 +1796,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: 'Strip',
           id: 'strip',
           default: 0,
-          choices: [
-            ...instance.data.stripLabelUTF8c60.map((label, index) => ({ id: index, label: label || index + 1 + '' })),
-            { id: 8, label: 'Recorder' },
-          ],
+          choices: [...instance.data.stripLabelUTF8c60.map((label, index) => ({ id: index, label: label || index + 1 + '' })), { id: 8, label: 'Recorder' }],
         },
       ],
       callback: (action) => {
@@ -1777,8 +1808,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
     vbanSettings: {
       name: 'VBAN Settings',
-      description:
-        'Control various settings of VBAN and each In/Out stream (Warning, disabling VBAN may disable Companions connection to Voicemeeter)',
+      description: 'Control various settings of VBAN and each In/Out stream (Warning, disabling VBAN may disable Companions connection to Voicemeeter)',
       options: [
         {
           type: 'dropdown',

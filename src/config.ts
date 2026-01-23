@@ -1,4 +1,4 @@
-import { SomeCompanionConfigField } from '@companion-module/base'
+import type { SomeCompanionConfigField } from '@companion-module/base'
 
 export interface Config {
   host: string
@@ -13,8 +13,7 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
       id: 'proxyInfo',
       width: 11,
       label: 'Voicemeeter Connection',
-      value:
-        'Connecting to Voicemeeter requires VBAN turned on, as well as the ASCII stream (called Command1 by default) turned on',
+      value: 'Connecting to Voicemeeter requires VBAN turned on, as well as the ASCII stream (called Command1 by default) turned on',
     },
     {
       type: 'textinput',

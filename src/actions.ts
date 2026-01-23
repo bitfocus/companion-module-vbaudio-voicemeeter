@@ -1,5 +1,5 @@
-import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
-import VoicemeeterInstance from './index'
+import type { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import type VoicemeeterInstance from './index'
 import { getOptions } from './utils'
 
 export interface VoicemeeterActions {
@@ -361,7 +361,7 @@ export interface VoicemeeterAction<T> {
   name: string
   description?: string
   options: InputFieldWithDefault[]
-  callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+  callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void | Promise<void>
   subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
   unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 }
@@ -389,7 +389,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -397,7 +397,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'On') newValue = 1
         if (action.options.type === 'Off') newValue = 0
 
-        instance.connection.sendCommand(`Bus[${bus}].EQ.on=${newValue}`)
+        return instance.connection.sendCommand(`Bus[${bus}].EQ.on=${newValue}`)
       },
     },
 
@@ -424,7 +424,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus: number = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -432,7 +432,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.mode === 'A') newValue = 0
         if (action.options.mode === 'B') newValue = 1
 
-        instance.connection.sendCommand(`Bus[${bus}].EQ.AB=${newValue}`)
+        return instance.connection.sendCommand(`Bus[${bus}].EQ.AB=${newValue}`)
       },
     },
 
@@ -477,11 +477,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
-        let fade: string | number = await instance.parseVariablesInString(action.options.fade)
-        let value: string | number = await instance.parseVariablesInString(action.options.value)
+        let fade = parseInt(action.options.fade, 10)
+        const value = parseFloat(action.options.value)
 
-        fade = parseInt(fade, 10)
-        value = parseFloat(value)
         if (isNaN(fade) || isNaN(value)) return
 
         const currentValue = instance.data.busGaindB100[bus]
@@ -501,11 +499,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         if (newValue !== currentValue) {
           if (fade === 0) {
-            instance.connection.sendCommand(`Bus[${bus}].Gain=${newValue}`)
+            return instance.connection.sendCommand(`Bus[${bus}].Gain=${newValue}`)
           } else {
-            instance.connection.sendCommand(`Bus[${bus}].FadeTo=(${newValue},${fade})`)
+            return instance.connection.sendCommand(`Bus[${bus}].FadeTo=(${newValue},${fade})`)
           }
         }
+
+        return
       },
     },
 
@@ -543,7 +543,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -564,7 +564,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           newMode = action.options.mode
         }
 
-        instance.connection.sendCommand(`Bus[${bus}].mode.${newMode}=1`)
+        return instance.connection.sendCommand(`Bus[${bus}].mode.${newMode}=1`)
       },
     },
 
@@ -587,7 +587,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -596,8 +596,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'Off') value = 0
 
         if (instance.data.busState[bus].monitor ? 1 : 0 !== value) {
-          instance.connection.sendCommand(`Bus[${bus}].Monitor=${value}`)
+          return instance.connection.sendCommand(`Bus[${bus}].Monitor=${value}`)
         }
+
+        return
       },
     },
 
@@ -620,7 +622,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -629,8 +631,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'Off') value = 0
 
         if (instance.data.busState[bus].mono ? 1 : 0 !== value) {
-          instance.connection.sendCommand(`Bus[${bus}].Mono=${value}`)
+          return instance.connection.sendCommand(`Bus[${bus}].Mono=${value}`)
         }
+
+        return
       },
     },
 
@@ -653,7 +657,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...utilOptions.busSelect.choices, { id: -1, label: 'Selected' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -662,8 +666,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'Unmute') value = 0
 
         if (instance.data.busState[bus].mute ? 1 : 0 !== value) {
-          instance.connection.sendCommand(`Bus[${bus}].Mute=${value}`)
+          return instance.connection.sendCommand(`Bus[${bus}].Mute=${value}`)
         }
+
+        return
       },
     },
 
@@ -700,13 +706,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       ],
       callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
-        let value = parseFloat(await instance.parseVariablesInString(action.options.value))
+        let value = parseFloat(action.options.value)
         if (!instance.data.busState[bus] || isNaN(value)) return
 
         if (value < 0) value = 0
         if (value > 10) value = 10
 
-        instance.connection.sendCommand(`Bus[${bus}].${action.options.returns}=${value}`)
+        return instance.connection.sendCommand(`Bus[${bus}].${action.options.returns}=${value}`)
       },
     },
 
@@ -729,7 +735,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const bus = action.options.bus === -1 ? instance.selectedBus : action.options.bus
         if (!instance.data.busState[bus]) return
 
@@ -738,8 +744,10 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.type === 'Off') value = 0
 
         if (instance.data.busState[bus].sel ? 1 : 0 !== value) {
-          instance.connection.sendCommand(`Bus[${bus}].Sel=${value}`)
+          return instance.connection.sendCommand(`Bus[${bus}].Sel=${value}`)
         }
+
+        return
       },
     },
 
@@ -780,6 +788,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           label: '',
           id: 'path',
           default: '',
+          useVariables: true,
           isVisible: (options) => options.command === 'Save' || options.command === 'Load',
         },
         {
@@ -794,13 +803,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           isVisible: (options) => options.command === 'Lock',
         },
       ],
-      callback: (action) => {
-        const command: any = action.options.command
+      callback: async (action) => {
+        const command = action.options.command
 
         if (command === 'Default') {
           return
         } else if (command === 'Show') {
-          instance.connection.sendCommand(`Command.Show=${action.options.show}`)
+          return instance.connection.sendCommand(`Command.Show=${action.options.show}`)
         } else if (command === 'Save' || command === 'Load') {
           let path = action.options.path
           if (path === '') return
@@ -809,11 +818,11 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             path = `"${[path]}"`
           }
 
-          instance.connection.sendCommand(`Command.Save=${path}`)
+          return instance.connection.sendCommand(`Command.Save=${path}`)
         } else if (command === 'Lock') {
-          instance.connection.sendCommand(`Command.Lock=${action.options.lock}`)
+          return instance.connection.sendCommand(`Command.Lock=${action.options.lock}`)
         } else {
-          instance.connection.sendCommand(`Command.${command}=1`)
+          return instance.connection.sendCommand(`Command.${command}=1`)
         }
       },
     },
@@ -858,8 +867,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: async (action) => {
-        let id: number | string = await instance.parseVariablesInString(action.options.id)
-        id = parseInt(id, 10)
+        const id = parseInt(action.options.id, 10)
 
         if (isNaN(id)) {
           instance.log('warn', 'Macro Button id must be a number')
@@ -869,19 +877,19 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const value = action.options.state ? 1 : 0
 
         if (action.options.type === 'state') {
-          instance.connection.sendCommand(`Command.Button[${id}].State=${value}`)
+          return instance.connection.sendCommand(`Command.Button[${id}].State=${value}`)
         } else if (action.options.type === 'stateOnly') {
-          instance.connection.sendCommand(`Command.Button[${id}].StateOnly=${value}`)
+          return instance.connection.sendCommand(`Command.Button[${id}].StateOnly=${value}`)
         } else if (action.options.type === 'trigger') {
-          instance.connection.sendCommand(`Command.Button[${id}].Trigger=${value}`)
+          return instance.connection.sendCommand(`Command.Button[${id}].Trigger=${value}`)
         } else {
-          const color = await instance.parseVariablesInString(action.options.color)
+          const color = action.options.color
           const colorTest = parseInt(color, 10)
           if (isNaN(colorTest) || colorTest < 0 || colorTest > 8) {
             instance.log('warn', 'Macro Button Color value must be a number 0 to 8')
             return
           }
-          instance.connection.sendCommand(`Command.Button[${id}].Color=${color}`)
+          return instance.connection.sendCommand(`Command.Button[${id}].Color=${color}`)
         }
       },
     },
@@ -899,8 +907,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: async (action) => {
-        const command = await instance.parseVariablesInString(action.options.command)
-        instance.connection.sendCommand(command)
+        return instance.connection.sendCommand(action.options.command)
       },
     },
 
@@ -939,8 +946,8 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
       ],
-      callback: (action) => {
-        instance.connection.sendCommand(`Recorder.${action.options.type}=${action.options.state === 'On' ? 1 : 0}`)
+      callback: async (action) => {
+        return instance.connection.sendCommand(`Recorder.${action.options.type}=${action.options.state === 'On' ? 1 : 0}`)
       },
     },
 
@@ -959,9 +966,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const type = action.options.type === 'strip' ? 0 : 1
-        instance.connection.sendCommand(`Recorder.mode.recbus=${type}`)
+        return instance.connection.sendCommand(`Recorder.mode.recbus=${type}`)
       },
     },
 
@@ -971,22 +978,21 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       options: [
         {
           type: 'textinput',
-          label: 'Volume',
+          label: 'Volume (-60 to 12)',
           id: 'value',
           default: '1',
           useVariables: true,
         },
       ],
       callback: async (action) => {
-        let value: any = await instance.parseVariablesInString(action.options.value)
-        value = parseFloat(value)
+        let value = parseFloat(action.options.value)
 
         if (isNaN(value)) return
 
         if (value < -60) value = -60
         if (value > 12) value = 12
 
-        instance.connection.sendCommand(`Recorder.gain=${value}`)
+        return instance.connection.sendCommand(`Recorder.gain=${value}`)
       },
     },
 
@@ -1003,8 +1009,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: async (action) => {
-        const path = await instance.parseVariablesInString(action.options.path)
-        instance.connection.sendCommand(`Recorder.load="${path}"`)
+        return instance.connection.sendCommand(`Recorder.load="${action.options.path}"`)
       },
     },
 
@@ -1042,16 +1047,16 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           },
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const state = action.options.state === 'On' ? 1 : 0
         if (action.options.type === 'Loop') {
-          instance.connection.sendCommand(`Recorder.Loop=${state}`)
+          return instance.connection.sendCommand(`Recorder.Loop=${state}`)
         } else if (action.options.type === 'PlayOnLoad') {
-          instance.connection.sendCommand(`Recorder.mode.PlayOnLoad=${state}`)
+          return instance.connection.sendCommand(`Recorder.mode.PlayOnLoad=${state}`)
         } else if (action.options.type === 'Goto') {
-          instance.connection.sendCommand(`Recorder.goto=00:00:00`)
+          return instance.connection.sendCommand(`Recorder.goto=00:00:00`)
         } else {
-          instance.connection.sendCommand(`Recorder.${action.options.type}=1`)
+          return instance.connection.sendCommand(`Recorder.${action.options.type}=1`)
         }
       },
     },
@@ -1104,18 +1109,18 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3'].map((type) => ({ id: type, label: type })),
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const source = action.options.source === 9 ? instance.selectedStrip : action.options.source
         if (source === -1) return
 
         if (source === 8) {
-          instance.connection.sendCommand(`Recorder.[${action.options.destination}]=${action.options.recorderType === 'On' ? 1 : 0}`)
+          return instance.connection.sendCommand(`Recorder.[${action.options.destination}]=${action.options.recorderType === 'On' ? 1 : 0}`)
         } else {
           let newValue = instance.data.stripState[source][`bus${action.options.destination}`] ? 0 : 1
           if (action.options.type === 'On') newValue = 1
           if (action.options.type === 'Off') newValue = 0
 
-          instance.connection.sendCommand(`Strip[${source}].${action.options.destination}=${newValue}`)
+          return instance.connection.sendCommand(`Strip[${source}].${action.options.destination}=${newValue}`)
         }
       },
     },
@@ -1264,12 +1269,12 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (stripId === -1) return
 
         const updateCompressor = async (command: any, min: number, max: number) => {
-          let value: string | number = await instance.parseVariablesInString(action.options[action.options.setting])
-          value = parseFloat(value)
+          const value = parseFloat(action.options[action.options.setting])
+
           if (isNaN(value)) return
 
           if (action.options.setting === 'comp' || action.options.setting === 'compMakeUp') {
-            instance.connection.sendCommand(`Strip[${stripId}].${command}=${value}`)
+            return instance.connection.sendCommand(`Strip[${stripId}].${command}=${value}`)
           } else {
             const compressorType = {
               compGainIn: 'gainIn',
@@ -1299,28 +1304,28 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             if (newValue < min) newValue = min
             if (newValue > max) newValue = max
 
-            instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
+            return instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
           }
         }
 
         if (action.options.setting === 'comp') {
-          updateCompressor('Comp', 0, 10)
+          return updateCompressor('Comp', 0, 10)
         } else if (action.options.setting === 'compGainIn') {
-          updateCompressor('Comp.GainIn', -24, 24)
+          return updateCompressor('Comp.GainIn', -24, 24)
         } else if (action.options.setting === 'compRatio') {
-          updateCompressor('Comp.Ratio', 1, 8)
+          return updateCompressor('Comp.Ratio', 1, 8)
         } else if (action.options.setting === 'compThreshold') {
-          updateCompressor('Comp.Threshold', -40, -3)
+          return updateCompressor('Comp.Threshold', -40, -3)
         } else if (action.options.setting === 'compAttack') {
-          updateCompressor('Comp.Attack', 0, 200)
+          return updateCompressor('Comp.Attack', 0, 200)
         } else if (action.options.setting === 'compRelease') {
-          updateCompressor('Comp.Release', 0, 5000)
+          return updateCompressor('Comp.Release', 0, 5000)
         } else if (action.options.setting === 'compKnee') {
-          updateCompressor('Comp.Knee', 0, 1)
+          return updateCompressor('Comp.Knee', 0, 1)
         } else if (action.options.setting === 'compGainOut') {
-          updateCompressor('Comp.GainOut', -24, 24)
+          return updateCompressor('Comp.GainOut', -24, 24)
         } else if (action.options.setting === 'compMakeUp') {
-          updateCompressor('Comp.MakeUp', 0, 1)
+          return updateCompressor('Comp.MakeUp', 0, 1)
         }
       },
     },
@@ -1344,7 +1349,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Value: 0 to 10',
+          label: 'Value (0 to 10)',
           id: 'value',
           default: '0',
           useVariables: true,
@@ -1354,14 +1359,13 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (stripId === -1) return
 
-        let value: string | number = await instance.parseVariablesInString(action.options.value)
-        value = parseFloat(value)
+        const value = parseFloat(action.options.value)
         if (isNaN(value)) return
 
         let newValue = value
         if (newValue < 0) newValue = 0
         if (newValue > 10) newValue = 10
-        instance.connection.sendCommand(`Strip[${stripId}].Denoiser=${newValue}`)
+        return instance.connection.sendCommand(`Strip[${stripId}].Denoiser=${newValue}`)
       },
     },
 
@@ -1406,7 +1410,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'EQ -12 to 12',
+          label: 'EQ (-12 to 12)',
           id: 'value',
           default: '0',
           useVariables: true,
@@ -1416,19 +1420,17 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (stripId === -1) return
 
-        let value: string | number = await instance.parseVariablesInString(action.options.value)
-
-        value = parseFloat(value)
+        const value = parseFloat(action.options.value)
 
         if (isNaN(value)) {
           instance.log('warn', `Invalid EQ Value: ${value}`)
           return
         }
 
-				let currentValue = 0
-				if (action.options.freq === 1) currentValue = instance.data.stripData[stripId].EQgain1
-				if (action.options.freq === 2) currentValue = instance.data.stripData[stripId].EQgain2
-				if (action.options.freq === 3) currentValue = instance.data.stripData[stripId].EQgain3
+        let currentValue = 0
+        if (action.options.freq === 1) currentValue = instance.data.stripData[stripId].EQgain1
+        if (action.options.freq === 2) currentValue = instance.data.stripData[stripId].EQgain2
+        if (action.options.freq === 3) currentValue = instance.data.stripData[stripId].EQgain3
 
         let newValue
 
@@ -1443,7 +1445,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (newValue < -12) newValue = -12
         if (newValue > 12) newValue = 12
 
-        instance.connection.sendCommand(`Strip[${stripId}].EQGain${action.options.freq}=${newValue}`)
+        return instance.connection.sendCommand(`Strip[${stripId}].EQGain${action.options.freq}=${newValue}`)
       },
     },
 
@@ -1484,7 +1486,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Gain -60 to +12 dB',
+          label: 'Gain (-60 to +12 dB)',
           id: 'value',
           default: '0',
           useVariables: true,
@@ -1494,11 +1496,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         const stripId = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (stripId === -1) return
 
-        let fade: string | number = await instance.parseVariablesInString(action.options.fade)
-        let value: string | number = await instance.parseVariablesInString(action.options.value)
+        let fade = parseInt(action.options.fade, 10)
+        const value = parseFloat(action.options.value)
 
-        fade = parseInt(fade, 10)
-        value = parseFloat(value)
         if (isNaN(fade) || isNaN(value)) return
 
         const currentValue = instance.data.stripGaindB100Layer1[stripId]
@@ -1517,9 +1517,9 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (fade < 0) fade = 0
 
         if (fade === 0) {
-          instance.connection.sendCommand(`Strip[${stripId}].Gain=${newValue}`)
+          return instance.connection.sendCommand(`Strip[${stripId}].Gain=${newValue}`)
         } else {
-          instance.connection.sendCommand(`Strip[${stripId}].FadeTo=(${newValue},${fade})`)
+          return instance.connection.sendCommand(`Strip[${stripId}].FadeTo=(${newValue},${fade})`)
         }
       },
     },
@@ -1569,7 +1569,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Gate: 0 to 10',
+          label: 'Gate (0 to 10)',
           id: 'gate',
           default: '0',
           isVisible: (options) => options.setting === 'gate',
@@ -1577,7 +1577,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Threshold: -60 to -10 dB',
+          label: 'Threshold (-60 to -10 dB)',
           id: 'gateThreshold',
           default: '-60',
           isVisible: (options) => options.setting === 'gateThreshold',
@@ -1585,7 +1585,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Damping: -60 to -10 dB',
+          label: 'Damping (-60 to -10 dB)',
           id: 'gateDamping',
           default: '-60',
           isVisible: (options) => options.setting === 'gateDamping',
@@ -1593,7 +1593,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'BP Sidechain: 100 to 4000 Hz',
+          label: 'BP Sidechain (100 to 4000 Hz)',
           id: 'gateBPSidechain',
           default: '0',
           isVisible: (options) => options.setting === 'gateBPSidechain',
@@ -1601,7 +1601,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Attack Time: 0 to 1000 ms',
+          label: 'Attack Time (0 to 1000 ms)',
           id: 'gateAttack',
           default: '0',
           isVisible: (options) => options.setting === 'gateAttack',
@@ -1609,7 +1609,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'Hold Time: 0 to 5000 ms',
+          label: 'Hold Time (0 to 5000 ms)',
           id: 'gateHold',
           default: '0',
           isVisible: (options) => options.setting === 'gateHold',
@@ -1617,7 +1617,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
         {
           type: 'textinput',
-          label: 'ReleaseTime: 0 to 5000 ms',
+          label: 'ReleaseTime (0 to 5000 ms)',
           id: 'gateRelease',
           default: '0',
           isVisible: (options) => options.setting === 'gateRelease',
@@ -1630,15 +1630,14 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         const updateGate = async (command: any, min: number, max: number) => {
           const commandValue: any = action.options[action.options.setting]
-          let value: string | number = await instance.parseVariablesInString(commandValue)
-          value = parseFloat(value)
+          const value = parseFloat(commandValue)
           if (isNaN(value)) return
 
           let newValue = value
           if (newValue < min) newValue = min
           if (newValue > max) newValue = max
 
-          instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
+          return instance.connection.sendCommand(`Strip[${stripId}].${command}=${newValue}`)
         }
 
         if (action.options.setting === 'gate') {
@@ -1684,7 +1683,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (strip === -1) return
 
@@ -1694,7 +1693,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           value = instance.data.stripState[strip].mono ? 0 : 1
         }
 
-        instance.connection.sendCommand(`Strip[${strip}].Mono=${value}`)
+        return instance.connection.sendCommand(`Strip[${strip}].Mono=${value}`)
       },
     },
 
@@ -1723,7 +1722,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (strip === -1) return
 
@@ -1733,7 +1732,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           value = instance.data.stripState[strip].mute ? 0 : 1
         }
 
-        instance.connection.sendCommand(`Strip[${strip}].Mute=${value}`)
+        return instance.connection.sendCommand(`Strip[${strip}].Mute=${value}`)
       },
     },
 
@@ -1762,7 +1761,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           ],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         const strip = action.options.strip === -1 ? instance.selectedStrip : action.options.strip
         if (strip === -1) return
 
@@ -1772,7 +1771,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           value = instance.data.stripState[strip].solo ? 0 : 1
         }
 
-        instance.connection.sendCommand(`Strip[${strip}].Solo=${value}`)
+        return instance.connection.sendCommand(`Strip[${strip}].Solo=${value}`)
       },
     },
 
@@ -1780,7 +1779,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
       name: 'Util - Select Bus',
       description: 'For use in Companion actions/feedback/variables, not Voicemeeter',
       options: [utilOptions.busSelect],
-      callback: (action) => {
+      callback: async (action) => {
         instance.selectedBus = instance.selectedBus === action.options.bus ? -1 : action.options.bus
         instance.checkFeedbacks('busEQ', 'busEQAB', 'busMeters', 'busMonitor', 'busMono', 'busMute', 'busSel', 'utilSelectedBus')
         instance.variables?.updateVariables()
@@ -1799,7 +1798,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
           choices: [...instance.data.stripLabelUTF8c60.map((label, index) => ({ id: index, label: label || index + 1 + '' })), { id: 8, label: 'Recorder' }],
         },
       ],
-      callback: (action) => {
+      callback: async (action) => {
         instance.selectedStrip = instance.selectedStrip === action.options.strip ? -1 : action.options.strip
         instance.checkFeedbacks('StripMeters', 'stripMono', 'stripMute', 'stripSolo', 'utilSelectedStrip', 'routing')
         instance.variables?.updateVariables()
@@ -1942,8 +1941,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         },
       ],
       callback: async (action) => {
-        let index: number | string = await instance.parseVariablesInString(action.options.index)
-        index = parseInt(index, 10)
+        const index = parseInt(action.options.index, 10)
 
         if (isNaN(index)) {
           instance.log('warn', `VBAN Settings must have a valid index (0 to 7)`)
@@ -1955,24 +1953,24 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
         if (action.options.property === 'on') {
           value = action.options.adjustment === 'On' ? 1 : 0
         } else if (action.options.property === 'name') {
-          value = await instance.parseVariablesInString(action.options.name)
+          value = action.options.name
         } else if (action.options.property === 'ip') {
-          value = await instance.parseVariablesInString(action.options.ip)
+          value = action.options.ip
         } else if (action.options.property === 'port') {
-          value = await instance.parseVariablesInString(action.options.port)
+          value = action.options.port
         } else if (action.options.property === 'quality') {
           value = action.options.quality
         } else if (action.options.property === 'route') {
-          value = await instance.parseVariablesInString(action.options.route)
+          value = action.options.route
         } else if (action.options.property === 'sr') {
           value = action.options.sr
         } else if (action.options.property === 'channel') {
-          value = await instance.parseVariablesInString(action.options.channel)
+          value = action.options.channel
         } else if (action.options.property === 'bit') {
           value = action.options.bit
         }
 
-        instance.connection.sendCommand(`Vban.${action.options.type}[${index}].${action.options.property}=${value}`)
+        return instance.connection.sendCommand(`Vban.${action.options.type}[${index}].${action.options.property}=${value}`)
       },
     },
   }

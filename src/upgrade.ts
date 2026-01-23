@@ -1,5 +1,5 @@
-import { CompanionStaticUpgradeScript, CompanionStaticUpgradeResult } from '@companion-module/base'
-import { Config } from './config'
+import type { CompanionStaticUpgradeScript, CompanionStaticUpgradeResult } from '@companion-module/base'
+import type { Config } from './config'
 
 const upgradeV1_2_0: CompanionStaticUpgradeScript<Config> = (_context, props): CompanionStaticUpgradeResult<Config> => {
   const actions: any = props.actions

@@ -1,5 +1,5 @@
-import VoicemeeterInstance from './'
-import { CompanionVariableDefinition } from '@companion-module/base'
+import type VoicemeeterInstance from './'
+import type { CompanionVariableDefinition } from '@companion-module/base'
 import { busName } from './utils'
 
 interface InstanceVariableValue {
@@ -175,10 +175,7 @@ export class Variables {
     newVariables.util_selected_bus = this.instance.selectedBus === -1 ? '' : busName[this.instance.selectedBus]
     newVariables.util_selected_strip = ''
     if (this.instance.selectedStrip !== -1) {
-      newVariables.util_selected_strip =
-        this.instance.selectedStrip === 8
-          ? 'Recorder'
-          : this.instance.data.stripLabelUTF8c60[this.instance.selectedStrip]
+      newVariables.util_selected_strip = this.instance.selectedStrip === 8 ? 'Recorder' : this.instance.data.stripLabelUTF8c60[this.instance.selectedStrip]
     }
 
     for (let i = 0; i < 8; i++) {
@@ -187,9 +184,7 @@ export class Variables {
       newVariables[`bus_${name.toLowerCase()}_mute`] = this.instance.data.busState[i].mute.toString()
       newVariables[`bus_${name.toLowerCase()}_eq`] = this.instance.data.busState[i].eq.toString()
       newVariables[`bus_${name.toLowerCase()}_eqab`] = this.instance.data.busState[i].eqB ? 'B' : 'A'
-      newVariables[`bus_${name.toLowerCase()}_gain`] = (
-        Math.round(this.instance.data.busGaindB100[i] * 10) / 10
-      ).toFixed(1)
+      newVariables[`bus_${name.toLowerCase()}_gain`] = (Math.round(this.instance.data.busGaindB100[i] * 10) / 10).toFixed(1)
       newVariables[`bus_${name.toLowerCase()}_label`] = this.instance.data.busLabelUTF8c60[i]
       newVariables[`bus_${name.toLowerCase()}_l1`] = this.instance.data.outputLeveldB100[i][0]
       newVariables[`bus_${name.toLowerCase()}_l2`] = this.instance.data.outputLeveldB100[i][1]

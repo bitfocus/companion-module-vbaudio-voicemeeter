@@ -1,5 +1,5 @@
-import { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
-import VoicemeeterInstance from './index'
+import type { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
+import type VoicemeeterInstance from './index'
 
 interface Endpoints {
   GET: {
@@ -17,10 +17,7 @@ interface Endpoints {
  * @returns HTTP response
  * @description Checks incoming HTTP requests to the instance for an appropriate handler or returns a 404
  */
-export const httpHandler = async (
-  instance: VoicemeeterInstance,
-  request: CompanionHTTPRequest
-): Promise<CompanionHTTPResponse> => {
+export const httpHandler = async (instance: VoicemeeterInstance, request: CompanionHTTPRequest): Promise<CompanionHTTPResponse> => {
   const response: CompanionHTTPResponse = {
     status: 404,
     headers: {
@@ -29,10 +26,10 @@ export const httpHandler = async (
     body: JSON.stringify({ status: 404, message: 'Not Found' }),
   }
 
-	const getData = () => {
+  const getData = () => {
     response.status = 200
     response.body = JSON.stringify(instance.data, null, 2)
-	}
+  }
 
   const getVariables = () => {
     const data = instance.variables?.currentVariables || {}
@@ -43,7 +40,7 @@ export const httpHandler = async (
 
   const endpoints: Endpoints = {
     GET: {
-			data: getData,
+      data: getData,
       variables: getVariables,
     },
     POST: {},

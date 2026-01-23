@@ -2,9 +2,10 @@ node_modules/
 .vscode/
 dist/
 package-lock.json
-yarn.lock
 yarn-error.log
 /pkg
 /pkg.tgz
+*.tgz
 DEBUG-INSPECT
 DEBUG-PACKAGED
+.yarn/*

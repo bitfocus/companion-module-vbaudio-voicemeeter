@@ -1,20 +1,15 @@
-import {
-  InstanceBase,
-  runEntrypoint,
-  CompanionFeedbackDefinitions,
-  CompanionHTTPRequest,
-  CompanionHTTPResponse,
-  SomeCompanionConfigField,
-  InstanceStatus,
-} from '@companion-module/base'
-import { Config, getConfigFields } from './config'
+import type { CompanionFeedbackDefinitions, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, InstanceStatus } from '@companion-module/base'
+import type { Config } from './config'
+import { getConfigFields } from './config'
 import { getActions } from './actions'
 import { getFeedbacks } from './feedback'
 import { httpHandler } from './http'
 import { getPresets } from './presets'
 import { getUpgrades } from './upgrade'
 import { Variables } from './variables'
-import { defaultData, VBAN, VBANData } from './vban'
+import type { VBANData } from './vban'
+import { defaultData, VBAN } from './vban'
 
 /**
  * Companion instance class for VBAudio Voicemeeter
@@ -46,11 +41,11 @@ class VoicemeeterInstance extends InstanceBase<Config> {
     this.log('debug', `Process ID: ${process.pid}`)
     this.log(
       'info',
-      'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues '
+      'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues ',
     )
     this.log(
       'warn',
-      'v2.0.0 of this module has undergone significant changes, including removing the need for proxy connections to Voicemeeter and instead utilizing the new VBAN features in the latest version of Voicemeeter. Please see https://github.com/bitfocus/companion-module-vbaudio-voicemeeter for changes and requirements.'
+      'v2.0.0 of this module has undergone significant changes, including removing the need for proxy connections to Voicemeeter and instead utilizing the new VBAN features in the latest version of Voicemeeter. Please see https://github.com/bitfocus/companion-module-vbaudio-voicemeeter for changes and requirements.',
     )
     await this.configUpdated(config)
 
@@ -63,19 +58,13 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @description triggered every time the config for this instance is saved
    */
   public async configUpdated(config: Config): Promise<void> {
-    const change =
-      this.config.host !== config.host ||
-      this.config.port !== config.port ||
-      this.config.commandStream !== config.commandStream
+    const change = this.config.host !== config.host || this.config.port !== config.port || this.config.commandStream !== config.commandStream
 
     this.config = config
     if (change && !(this.config.host === '' || this.config.commandStream === '')) this.connection.registerRTPacket()
 
     if (this.config.host === '' || this.config.commandStream === '') {
-      this.log(
-        'info',
-        `Please configure the Voicemeeter instance, and ensure that VBAN, and the VBAN ASCII stream is enabled in Voicemeeter.`
-      )
+      this.log('info', `Please configure the Voicemeeter instance, and ensure that VBAN, and the VBAN ASCII stream is enabled in Voicemeeter.`)
       this.updateStatus(InstanceStatus.BadConfig)
     }
 
@@ -116,7 +105,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @param request HTTP request from Companion
    * @returns HTTP response
    */
-  public handleHttpRequest(request: CompanionHTTPRequest): Promise<CompanionHTTPResponse> {
+  public async handleHttpRequest(request: CompanionHTTPRequest): Promise<CompanionHTTPResponse> {
     return httpHandler(this, request)
   }
 }

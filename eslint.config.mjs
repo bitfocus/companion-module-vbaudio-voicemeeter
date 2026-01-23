@@ -17,6 +17,7 @@ const customConfig = [
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/consistent-type-imports': 'error',
+      'no-control-regex': 'off',
     },
   },
 ]

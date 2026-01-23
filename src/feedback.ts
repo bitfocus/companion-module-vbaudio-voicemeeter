@@ -1,15 +1,15 @@
-import VoicemeeterInstance from './index'
+import type VoicemeeterInstance from './index'
 import { presets } from 'companion-module-utils'
 import { getOptions, decibelToLinear } from './utils'
-import {
+import type {
   CompanionAdvancedFeedbackResult,
   CompanionFeedbackButtonStyleResult,
   CompanionFeedbackAdvancedEvent,
   CompanionFeedbackBooleanEvent,
   CompanionFeedbackContext,
   SomeCompanionFeedbackInputField,
-  combineRgb,
 } from '@companion-module/base'
+import { combineRgb } from '@companion-module/base'
 
 export interface VoicemeeterFeedbacks {
   busEQ: VoicemeeterFeedback<BusEQCallback>
@@ -159,10 +159,7 @@ interface VoicemeeterFeedbackBoolean<T> {
   description: string
   defaultStyle: Partial<CompanionFeedbackButtonStyleResult>
   options: InputFieldWithDefault[]
-  callback: (
-    feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>,
-    context: CompanionFeedbackContext
-  ) => boolean | Promise<boolean>
+  callback: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>, context: CompanionFeedbackContext) => boolean | Promise<boolean>
   subscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
   unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
 }
@@ -174,14 +171,10 @@ interface VoicemeeterFeedbackAdvanced<T> {
   options: InputFieldWithDefault[]
   callback: (
     feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>,
-    context: CompanionFeedbackContext
+    context: CompanionFeedbackContext,
   ) => CompanionAdvancedFeedbackResult | Promise<CompanionAdvancedFeedbackResult>
-  subscribe?: (
-    feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>
-  ) => CompanionAdvancedFeedbackResult
-  unsubscribe?: (
-    feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>
-  ) => CompanionAdvancedFeedbackResult
+  subscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
+  unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
 }
 
 export type VoicemeeterFeedback<T> = VoicemeeterFeedbackBoolean<T> | VoicemeeterFeedbackAdvanced<T>

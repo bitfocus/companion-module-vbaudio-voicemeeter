@@ -1,7 +1,7 @@
-import { /*combineRgb,*/ CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
-import VoicemeeterInstance from './index'
-import { ActionCallbacks } from './actions'
-import { FeedbackCallbacks } from './feedback'
+import type { /*combineRgb,*/ CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
+import type VoicemeeterInstance from './index'
+import type { ActionCallbacks } from './actions'
+import type { FeedbackCallbacks } from './feedback'
 
 export type PresetCategory = ''
 
@@ -14,8 +14,7 @@ interface VoicemeeterPresetAdditions {
   feedbacks: FeedbackCallbacks[]
 }
 
-export type VoicemeeterPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> &
-  VoicemeeterPresetAdditions
+export type VoicemeeterPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> & VoicemeeterPresetAdditions
 
 export function getPresets(_instance: VoicemeeterInstance): CompanionPresetDefinitions {
   const presets: VoicemeeterPreset[] = []

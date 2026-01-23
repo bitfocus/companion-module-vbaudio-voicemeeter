@@ -1,6 +1,6 @@
 import dgram from 'dgram'
 import { InstanceStatus } from '@companion-module/base'
-import VoicemeeterInstance from './'
+import type VoicemeeterInstance from './'
 
 export interface StripData {
   mode: {
@@ -205,7 +205,7 @@ export class VBAN {
     this.instance = instance
   }
 
-  public destroy = () => {
+  public destroy = (): void => {
     if (this.rtPacketInterval) clearTimeout(this.rtPacketInterval)
     if (this.updateHoldInterval) clearTimeout(this.updateHoldInterval)
     this.server.close()
@@ -656,7 +656,7 @@ export class VBAN {
     })
   }
 
-  public sendCommand = (command: string, forcedUpdate = false): void => {
+  public sendCommand = async (command: string, forcedUpdate = false): Promise<void> => {
     const stream = Buffer.from(`${this.instance.config.commandStream}`.padEnd(16, '\0') + '\x01\x00\x00\x00')
 
     // Define the VBAN protocol header
@@ -681,12 +681,16 @@ export class VBAN {
     // Combine header and command
     const message = Buffer.concat([vbanHeader, vbanCommand])
 
-    this.server.send(message, this.instance.config.port, this.instance.config.host, (err) => {
-      if (err) {
-        this.instance.log('warn', `Sending command err: ${err.message}`)
-      } else {
-        this.instance.log(forcedUpdate ? 'debug' : 'info', `Sent command: ${command}`)
-      }
+    return new Promise((resolve) => {
+      this.server.send(message, this.instance.config.port, this.instance.config.host, (err) => {
+        if (err) {
+          this.instance.log('error', `Sending command err: ${err.message}`)
+        } else {
+          this.instance.log(forcedUpdate ? 'debug' : 'info', `Sent command: ${command}`)
+        }
+
+        resolve()
+      })
     })
   }
 

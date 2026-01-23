@@ -1,4 +1,4 @@
-import { CompanionInputFieldDropdown } from '@companion-module/base'
+import type { CompanionInputFieldDropdown } from '@companion-module/base'
 
 export interface Bus {
   index: number
@@ -20,19 +20,7 @@ export interface Bus {
   levelsHold: number
 }
 
-export type BusMode =
-  | 'normal'
-  | 'Amix'
-  | 'Bmix'
-  | 'Repeat'
-  | 'Composite'
-  | 'TVMix'
-  | 'UpMix21'
-  | 'UpMix41'
-  | 'UpMix61'
-  | 'CenterOnly'
-  | 'LFEOnly'
-  | 'RearOnly'
+export type BusMode = 'normal' | 'Amix' | 'Bmix' | 'Repeat' | 'Composite' | 'TVMix' | 'UpMix21' | 'UpMix41' | 'UpMix61' | 'CenterOnly' | 'LFEOnly' | 'RearOnly'
 
 export interface Strip {
   index: number

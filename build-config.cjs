@@ -1,3 +1,3 @@
 module.exports = {
-  useOriginalStructureDirname: true
+  useOriginalStructureDirname: true,
 }

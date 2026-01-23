@@ -1,6 +1,6 @@
 {
   "name": "voicemeeter",
-  "version": "2.0.1",
+  "version": "2.2.0",
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {

@@ -136,6 +136,7 @@ export interface VBANData extends VBANHeader {
   stripData: StripData[]
   stripState: StripState[]
   busState: BusState[]
+  stripGaindB100Layer0: number[]
   stripGaindB100Layer1: number[]
   stripGaindB100Layer2: number[]
   stripGaindB100Layer3: number[]
@@ -177,6 +178,7 @@ export const defaultData: VBANData = {
   stripData: [],
   stripState: [],
   busState: [],
+  stripGaindB100Layer0: [],
   stripGaindB100Layer1: [],
   stripGaindB100Layer2: [],
   stripGaindB100Layer3: [],
@@ -289,6 +291,7 @@ export class VBAN {
           stripData: [],
           stripState: [],
           busState: [],
+          stripGaindB100Layer0: [],
           stripGaindB100Layer1: [],
           stripGaindB100Layer2: [],
           stripGaindB100Layer3: [],
@@ -424,6 +427,15 @@ export class VBAN {
             const offset = start + x * 2
             newData[`stripGaindB100Layer${i + 1}`].push(parseNumber(payload.subarray(offset, offset + 2).reverse(), 1200) / 100)
           }
+        }
+
+        for (let i = 0; i < 8; i++) {
+					let stripValues: number[] = []
+          for (let x = 0; x < 8; x++) {
+						stripValues.push(newData[`stripGaindB100Layer${x + 1}`][i])
+          }
+
+					newData[`stripGaindB100Layer0`].push(Math.max(...stripValues))
         }
 
         for (let i = 0; i < 8; i++) {

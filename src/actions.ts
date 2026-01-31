@@ -1501,7 +1501,20 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
 
         if (isNaN(fade) || isNaN(value)) return
 
-        const currentValue = instance.data.stripGaindB100Layer1[stripId]
+        let currentValue = instance.data.stripGaindB100Layer0[stripId]
+
+				let busSel = instance.data.busState.find(bus => bus.sel)
+
+				if (busSel) {
+					let values: number[] = []
+
+					instance.data.busState.forEach((bus, index) => {
+						if (bus.sel) values.push(instance.data[`stripGaindB100Layer${index + 1}`][stripId])
+					})
+
+					currentValue = Math.max(...values)
+				}
+
         let newValue
 
         if (action.options.adjustment === 'Set') {

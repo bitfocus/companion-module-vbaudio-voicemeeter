@@ -197,7 +197,15 @@ export class Variables {
       newVariables[`strip_${i + 1}_mute`] = this.instance.data.stripState[i].mute.toString()
       newVariables[`strip_${i + 1}_solo`] = this.instance.data.stripState[i].solo.toString()
       newVariables[`strip_${i + 1}_mc`] = this.instance.data.stripState[i].muteC.toString()
-      newVariables[`strip_${i + 1}_gain`] = this.instance.data.stripGaindB100Layer1[i]
+
+      let gainValue: number[] = []
+      this.instance.data.busState.forEach((bus, index) => {
+        if (bus.sel) {
+          gainValue.push(this.instance.data[`stripGaindB100Layer${index + 1}`][i])
+        }
+      })
+      newVariables[`strip_${i + 1}_gain`] = gainValue.length > 0 ? Math.max(...gainValue) : this.instance.data.stripGaindB100Layer0[i]
+
       for (let j = 0; j < 8; j++) {
         const name = busName[j]
         newVariables[`strip_${i + 1}_gain_${name.toLowerCase()}`] = this.instance.data[`stripGaindB100Layer${j}`]

@@ -10,6 +10,11 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**v2.2.1**
+- Fixed an issue adjusting strip gain to selected busses
+- Fixed an issue with the Load XML command sending the wrong command
+- Removed redundant Companion status updates to reduce log spam
+
 **v2.2.0**
 - Added `Strip - EQ Gain 1 to 3 (Virtual Strips)` Action for setting the 3 EQ settings on Virtual Strips
 - Added a solution to force an update of data from Voicemeeter on launch

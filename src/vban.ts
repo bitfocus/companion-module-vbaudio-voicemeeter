@@ -276,6 +276,7 @@ export class VBAN {
       if (header.function === 0) {
         if (!this.connected) {
           this.instance.updateStatus(InstanceStatus.Ok)
+					this.connected = true
         }
 
         const newData: VBANData = {
@@ -430,12 +431,12 @@ export class VBAN {
         }
 
         for (let i = 0; i < 8; i++) {
-					let stripValues: number[] = []
+          let stripValues: number[] = []
           for (let x = 0; x < 8; x++) {
-						stripValues.push(newData[`stripGaindB100Layer${x + 1}`][i])
+            stripValues.push(newData[`stripGaindB100Layer${x + 1}`][i])
           }
 
-					newData[`stripGaindB100Layer0`].push(Math.max(...stripValues))
+          newData[`stripGaindB100Layer0`].push(Math.max(...stripValues))
         }
 
         for (let i = 0; i < 8; i++) {
@@ -468,8 +469,6 @@ export class VBAN {
         if (!this.connected) {
           this.forceUpdate()
         }
-
-        this.connected = true
       } else if (header.function === 1) {
         const modeValue = (x: Buffer, max = 50): number => {
           let value = parseNumber(x)
@@ -596,7 +595,10 @@ export class VBAN {
       }
     } else if (header.stream.toString().startsWith('VBAN Service')) {
       this.instance.log('debug', 'Received VBAN service message')
-      this.instance.updateStatus(InstanceStatus.Ok)
+      if (!this.connected) {
+        this.instance.updateStatus(InstanceStatus.Ok)
+				this.connected = true
+      }
       if (this.disconnectTimer) {
         this.disconnectCount = 0
         clearTimeout(this.disconnectTimer)
@@ -649,7 +651,10 @@ export class VBAN {
     this.server.send(createRTPacket(0x00), this.instance.config.port, this.instance.config.host, (err) => {
       this.disconnectTimer = setTimeout(() => {
         this.disconnectCount++
-        if (this.disconnectCount > 1) this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
+        if (this.disconnectCount > 1) {
+					this.connected = false
+					this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
+				}
       }, 4000)
 
       this.instance.log('debug', 'Sent Register RTPacket message')

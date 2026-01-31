@@ -818,7 +818,7 @@ export function getActions(instance: VoicemeeterInstance): VoicemeeterActions {
             path = `"${[path]}"`
           }
 
-          return instance.connection.sendCommand(`Command.Save=${path}`)
+          return instance.connection.sendCommand(`Command.${command}=${path}`)
         } else if (command === 'Lock') {
           return instance.connection.sendCommand(`Command.Lock=${action.options.lock}`)
         } else {

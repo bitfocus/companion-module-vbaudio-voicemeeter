@@ -4,9 +4,7 @@
 </p>
 
 # companion-module-vbaudio-voicemeeter
-Companion module for connecting either locally to Voicemeeter on the same machine as Companion, or act as a proxy on a remote machine.
-
-For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
+Companion module for connecting over VBAN to Voicemeeter either locally or on a remote machine.
 
 
 # Recent Patches

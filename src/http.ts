@@ -1,5 +1,5 @@
 import type { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
-import type VoicemeeterInstance from './index'
+import type VoicemeeterInstance from './index.js'
 
 interface Endpoints {
   GET: {

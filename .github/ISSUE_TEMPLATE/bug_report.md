@@ -25,7 +25,8 @@ If applicable, add screenshots to help explain your problem.
 
 **System (please complete the following information):**
 
-- Companion Version [e.g. 3.1.0 (70d5207-2717)]
+- Companion Version [e.g. 4.3.4 (70d5207-2717)]
+- Voicemeeter Companion Module Version
 - Voicemeeter Type and Version
 
 **Additional context**

@@ -1,4 +1,5 @@
 import type { CompanionInputFieldDropdown } from '@companion-module/base'
+import type VoicemeeterInstance from './index.js'
 
 export interface Bus {
   index: number
@@ -84,23 +85,82 @@ export interface Strip {
 
 export type VoicemeeterType = 'voicemeeter' | 'voicemeeterBanana' | 'voicemeeterPotato' | ''
 
-// Force options to have a default to prevent sending undefined values
-type EnforceDefault<T, U> = Omit<T, 'default'> & { default: U }
 
-export interface Options {
-  busSelect: EnforceDefault<CompanionInputFieldDropdown, number>
-}
+export type BusName = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
 
 export const busName = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3']
 
-export const getOptions = (): Options => {
+type Options = {
+  adjustment: CompanionInputFieldDropdown<'adjustment'>
+  bus: CompanionInputFieldDropdown<'bus'>
+  busSelect: CompanionInputFieldDropdown<'bus'>
+  strip: CompanionInputFieldDropdown<'strip'>
+  stripSelect: CompanionInputFieldDropdown<'strip'>
+  toggle: CompanionInputFieldDropdown<'type'>
+}
+
+export const options = (instance: VoicemeeterInstance): Options => {
   return {
+    adjustment: {
+      type: 'dropdown',
+      label: 'Adjustment',
+      id: 'adjustment',
+      default: 'Set',
+      choices: [
+        { id: 'Set', label: 'Set' },
+        { id: 'Increase', label: 'Increase' },
+        { id: 'Decrease', label: 'Decrease' },
+      ],
+      expressionDescription: `Valid Values: 'Set', 'Increase', or 'Decrease'`,
+    },
+    bus: {
+      type: 'dropdown',
+      label: 'Bus',
+      id: 'bus',
+      default: 'A1',
+      choices: busName.map((bus) => ({ id: bus, label: bus })),
+      expressionDescription: `Valid Values: 'A1' to 'B3'`,
+    },
     busSelect: {
       type: 'dropdown',
       label: 'Bus',
       id: 'bus',
-      default: 0,
-      choices: busName.map((bus, index) => ({ id: index, label: bus })),
+      default: 'A1',
+      choices: [...busName.map((bus) => ({ id: bus, label: bus })), { id: 'Selected', label: 'Selected' }],
+      expressionDescription: `Valid Values: 'A1' to 'B3', or 'Selected'`,
+    },
+    strip: {
+      type: 'dropdown',
+      label: 'Strip',
+      id: 'strip',
+      default: 1,
+      choices: instance.data.stripLabelUTF8c60.map((label: string, index: number) => ({
+        id: index + 1,
+        label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+      })),
+      expressionDescription: `Valid Values: 1 to 8`,
+    },
+    stripSelect: {
+      type: 'dropdown',
+      label: 'Strip',
+      id: 'strip',
+      default: 1,
+      choices: [
+        ...instance.data.stripLabelUTF8c60.map((label: string, index: number) => ({
+          id: index + 1,
+          label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+        })),
+        { id: 'Selected', label: 'Selected' },
+      ],
+      expressionDescription: `Valid Values: 1 to 8, or 'Selected'`,
+    },
+    toggle: {
+      type: 'dropdown',
+      label: 'Type',
+      id: 'type',
+      default: 'Toggle',
+      choices: ['Toggle', 'On', 'Off'].map((type) => ({ id: type, label: type })),
+      expressionDescription: `Valid Values: 'Toggle', 'On', or 'Off'`,
     },
   }
 }

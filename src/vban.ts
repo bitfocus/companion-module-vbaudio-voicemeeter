@@ -1,6 +1,7 @@
 import dgram from 'dgram'
-import { InstanceStatus } from '@companion-module/base'
-import type VoicemeeterInstance from './'
+import { createModuleLogger, InstanceStatus } from '@companion-module/base'
+import type VoicemeeterInstance from './index.js'
+import type { FeedbackId } from './feedback/feedback.js'
 
 export interface StripData {
   mode: {
@@ -192,6 +193,8 @@ export const defaultData: VBANData = {
   busLabelUTF8c60: [],
 }
 
+const log = createModuleLogger('VBAN')
+
 export class VBAN {
   public connected = false
   private disconnectCount = 0
@@ -214,11 +217,11 @@ export class VBAN {
   }
 
   public readonly init = (): void => {
-    this.instance.log('debug', 'VBAN init')
+    log.debug('VBAN init')
     this.instance.updateStatus(InstanceStatus.Connecting)
 
     this.server.on('error', (err) => {
-      this.instance.log('error', `VBAN connection err: ${err.message}`)
+      log.error(`VBAN connection err: ${err.message}`)
       this.instance.updateStatus(InstanceStatus.Disconnected, err.message)
       this.connected = false
       this.server.close()
@@ -226,7 +229,7 @@ export class VBAN {
 
     this.server.on('listening', () => {
       const address = this.server.address()
-      this.instance.log('info', `server listening ${address.address}:${address.port}`)
+      log.info(`server listening ${address.address}:${address.port}`)
 
       this.registerRTPacket()
     })
@@ -276,7 +279,7 @@ export class VBAN {
       if (header.function === 0) {
         if (!this.connected) {
           this.instance.updateStatus(InstanceStatus.Ok)
-					this.connected = true
+          this.connected = true
         }
 
         const newData: VBANData = {
@@ -594,17 +597,17 @@ export class VBAN {
         this.updateData(stripData.strip, 1)
       }
     } else if (header.stream.toString().startsWith('VBAN Service')) {
-      this.instance.log('debug', 'Received VBAN service message')
+      log.debug('Received VBAN service message')
       if (!this.connected) {
         this.instance.updateStatus(InstanceStatus.Ok)
-				this.connected = true
+        this.connected = true
       }
       if (this.disconnectTimer) {
         this.disconnectCount = 0
         clearTimeout(this.disconnectTimer)
       }
     } else {
-      this.instance.log('debug', `Unknown VBAN Message ${msg.toString()}`)
+      log.debug(`Unknown VBAN Message ${msg.toString()}`)
     }
   }
 
@@ -652,14 +655,14 @@ export class VBAN {
       this.disconnectTimer = setTimeout(() => {
         this.disconnectCount++
         if (this.disconnectCount > 1) {
-					this.connected = false
-					this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
-				}
+          this.connected = false
+          this.instance.updateStatus(InstanceStatus.Disconnected, 'Failed to receive RT Packet')
+        }
       }, 4000)
 
-      this.instance.log('debug', 'Sent Register RTPacket message')
+      log.debug('Sent Register RTPacket message')
       if (err) {
-        this.instance.log('error', `Error sending VBAN register RTPacket0 message: ${err}`)
+        log.error(`Error sending VBAN register RTPacket0 message: ${err}`)
       } else {
         if (this.rtPacketInterval) clearTimeout(this.rtPacketInterval)
         this.rtPacketInterval = setTimeout(this.registerRTPacket, 15000)
@@ -668,7 +671,7 @@ export class VBAN {
 
     this.server.send(createRTPacket(0x01), this.instance.config.port, this.instance.config.host, (err) => {
       if (err) {
-        this.instance.log('error', `Error sending VBAN register RTPacket1 message: ${err}`)
+        log.error(`Error sending VBAN register RTPacket1 message: ${err}`)
       }
     })
   }
@@ -701,9 +704,10 @@ export class VBAN {
     return new Promise((resolve) => {
       this.server.send(message, this.instance.config.port, this.instance.config.host, (err) => {
         if (err) {
-          this.instance.log('error', `Sending command err: ${err.message}`)
+          log.error(`Sending command err: ${err.message}`)
         } else {
-          this.instance.log(forcedUpdate ? 'debug' : 'info', `Sent command: ${command}`)
+					const logState = forcedUpdate ? 'debug' : 'info'
+          log[logState](`Sent command: ${command}`)
         }
 
         resolve()
@@ -723,9 +727,9 @@ export class VBAN {
       const stripLabelChange = JSON.stringify(data.stripLabelUTF8c60) !== JSON.stringify(this.instance.data.stripLabelUTF8c60)
       const busLabelChange = JSON.stringify(data.busLabelUTF8c60) !== JSON.stringify(this.instance.data.busLabelUTF8c60)
 
-      const feedbackUpdates = []
+      const feedbackUpdates: FeedbackId[] = []
       if (stripStateChange) feedbackUpdates.push('stripMono', 'stripMute', 'stripSolo', 'routing')
-      if (busStateChange) feedbackUpdates.push('busEQ', 'busEQAB', 'busEQABCallback', 'busMonitor', 'busMono', 'busMute', 'busSel')
+      if (busStateChange) feedbackUpdates.push('busEQ', 'busEQAB', 'busEQAB', 'busMonitor', 'busMono', 'busMute', 'busSel')
 
       this.instance.data = { ...(newData as VBANData), stripData: this.instance.data.stripData }
 
@@ -744,7 +748,7 @@ export class VBAN {
       if (stripLabelChange || busLabelChange) this.instance.updateInstance()
 
       if (feedbackUpdates.length > 0) {
-        this.instance.checkFeedbacks(...feedbackUpdates)
+        this.instance.checkFeedbacks(feedbackUpdates[0], ...feedbackUpdates.slice(1))
       }
     } else if (type === 1) {
       const data = newData as StripData[]

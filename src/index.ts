@@ -1,23 +1,30 @@
-import type { CompanionFeedbackDefinitions, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
-import { InstanceBase, runEntrypoint, InstanceStatus } from '@companion-module/base'
-import type { Config } from './config'
-import { getConfigFields } from './config'
-import { getActions } from './actions'
-import { getFeedbacks } from './feedback'
-import { httpHandler } from './http'
-import { getPresets } from './presets'
-import { getUpgrades } from './upgrade'
-import { Variables } from './variables'
-import type { VBANData } from './vban'
-import { defaultData, VBAN } from './vban'
+import { InstanceBase, InstanceStatus, createModuleLogger, type CompanionHTTPRequest, type CompanionHTTPResponse, type SomeCompanionConfigField } from '@companion-module/base'
+import { type Config, getConfigFields } from './config.js'
+import { type ActionsSchema, getActions } from './actions/actions.js'
+import { type FeedbacksSchema, getFeedbacks } from './feedback/feedback.js'
+import { httpHandler } from './http.js'
+import { getPresetDefinitions, getPresetStructure } from './presets/presets.js'
+import { getUpgrades } from './upgrade.js'
+import { VariablesSchema, Variables } from './variables/variables.js'
+import { type VBANData, defaultData, VBAN } from './vban.js'
+
+export interface InstanceTypes {
+  config: Config
+  secrets: undefined
+  actions: ActionsSchema
+  feedbacks: FeedbacksSchema
+  variables: VariablesSchema
+}
+
+const log = createModuleLogger('Main')
 
 /**
  * Companion instance class for VBAudio Voicemeeter
  */
-class VoicemeeterInstance extends InstanceBase<Config> {
+export default class VoicemeeterInstance extends InstanceBase<InstanceTypes> {
   public connected = false
   public data: VBANData = defaultData
-  public selectedBus = -1
+  public selectedBus = ''
   public selectedStrip = -1
   public connection = new VBAN(this)
 
@@ -38,14 +45,8 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @description triggered on instance being enabled
    */
   public async init(config: Config): Promise<void> {
-    this.log('debug', `Process ID: ${process.pid}`)
-    this.log(
-      'info',
+    log.info(
       'This module has been tested with Voicemeeter Potato, if other versions run in to issues please report them here: https://github.com/bitfocus/companion-module-vbaudio-voicemeeter/issues ',
-    )
-    this.log(
-      'warn',
-      'v2.0.0 of this module has undergone significant changes, including removing the need for proxy connections to Voicemeeter and instead utilizing the new VBAN features in the latest version of Voicemeeter. Please see https://github.com/bitfocus/companion-module-vbaudio-voicemeeter for changes and requirements.',
     )
     await this.configUpdated(config)
 
@@ -64,12 +65,12 @@ class VoicemeeterInstance extends InstanceBase<Config> {
     if (change && !(this.config.host === '' || this.config.commandStream === '')) this.connection.registerRTPacket()
 
     if (this.config.host === '' || this.config.commandStream === '') {
-      this.log('info', `Please configure the Voicemeeter instance, and ensure that VBAN, and the VBAN ASCII stream is enabled in Voicemeeter.`)
+      log.info(`Please configure the Voicemeeter instance, and ensure that VBAN, and the VBAN ASCII stream is enabled in Voicemeeter.`)
       this.updateStatus(InstanceStatus.BadConfig)
     }
 
     this.updateInstance()
-    this.setPresetDefinitions(getPresets(this))
+    this.setPresetDefinitions(getPresetStructure, getPresetDefinitions(this))
     if (this.variables) this.variables.updateDefinitions()
   }
 
@@ -85,7 +86,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
    * @description close connections and stop timers/intervals
    */
   public async destroy(): Promise<void> {
-    this.log('debug', `Instance destroyed: ${this.id}`)
+    log.debug(`Instance destroyed: ${this.id}`)
     this.connection.destroy()
   }
 
@@ -95,7 +96,7 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   public updateInstance(): void {
     // Cast actions and feedbacks from Voicemeeter types to Companion types
     const actions = getActions(this)
-    const feedbacks = getFeedbacks(this) as CompanionFeedbackDefinitions
+    const feedbacks = getFeedbacks(this)
 
     this.setActionDefinitions(actions)
     this.setFeedbackDefinitions(feedbacks)
@@ -110,6 +111,5 @@ class VoicemeeterInstance extends InstanceBase<Config> {
   }
 }
 
-export = VoicemeeterInstance
+export const UpgradeScripts = getUpgrades
 
-runEntrypoint(VoicemeeterInstance, getUpgrades())

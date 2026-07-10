@@ -1,9 +1,11 @@
-import type { SomeCompanionConfigField } from '@companion-module/base'
+import type { SomeCompanionConfigField, JsonValue } from '@companion-module/base'
 
 export interface Config {
   host: string
   port: number
   commandStream: string
+
+  [x: string]: JsonValue
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
@@ -27,7 +29,7 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
       id: 'port',
       label: 'VBAN Port',
       width: 6,
-      default: 8099,
+      default: 6980,
       min: 1,
       max: 65535,
       step: 1,

@@ -10,6 +10,12 @@ For a guide on setting up a proxy, refer to [HELP.md](./companion/HELP.md)
 
 
 # Recent Patches
+**v3.0.0**
+- Breaking Changes: Some Variables have been changed from Strings to either boolean or number
+- Updated API version to allow for Expression in most Action/Feedback options
+- Added JSON variables for each Bus and Strip containing all of their data
+- Added Bus and Strip `fader` variables to return the position of the gain fader from 0 to 100, to aid drawing graphics in Companion v5
+
 **v2.2.1**
 - Fixed an issue adjusting strip gain to selected busses
 - Fixed an issue with the Load XML command sending the wrong command

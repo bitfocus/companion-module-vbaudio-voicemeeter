@@ -2,7 +2,7 @@
 	"id": "vbaudio-voicemeeter",
 	"name": "vbaudio-voicemeeter",
 	"shortname": "Voicemeeter",
-	"description": "Voicemeeter API Library and Proxy",
+	"description": "Voicemeeter API",
 	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "https://github.com/bitfocus/companion-module-vbaudio-voicemeeter.git",

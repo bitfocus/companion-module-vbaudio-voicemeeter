@@ -85,7 +85,6 @@ export interface Strip {
 
 export type VoicemeeterType = 'voicemeeter' | 'voicemeeterBanana' | 'voicemeeterPotato' | ''
 
-
 export type BusName = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3'
 
 export const busName = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3']

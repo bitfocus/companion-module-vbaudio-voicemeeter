@@ -226,7 +226,7 @@ export const getBusActions = (instance: VoicemeeterInstance): CompanionActionDef
         const rtPacketModes = ['normal', 'mixdownA', 'mixdownB', 'repeat', 'composite', 'upmixtv', 'upmixtv2', 'upmixtv4', 'upmixtv6', 'center', 'lfe', 'rear']
 
         const index = rtPacketModes.indexOf(instance.data.busState[busIndex].mode)
-        let newMode = ''
+        let newMode: string = action.options.mode
 
         if (action.options.mode === 'next') {
           const newIndex = (index + 1) % modes.length
@@ -234,8 +234,6 @@ export const getBusActions = (instance: VoicemeeterInstance): CompanionActionDef
         } else if (action.options.mode === 'prev') {
           const newIndex = (index + modes.length - 1) % modes.length
           newMode = modes[newIndex]
-        } else {
-          newMode = action.options.mode
         }
 
         return instance.connection.sendCommand(`Bus[${busIndex}].mode.${newMode}=1`)

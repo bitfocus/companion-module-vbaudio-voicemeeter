@@ -13,7 +13,4 @@ export function getPresetDefinitions(_instance: VoicemeeterInstance): CompanionP
   return presets
 }
 
-export const getPresetStructure: CompanionPresetSection<InstanceTypes>[] = [
-	...getBusStructure(),
-	...getStripStructure(),
-]
+export const getPresetStructure: CompanionPresetSection<InstanceTypes>[] = [...getBusStructure(), ...getStripStructure()]

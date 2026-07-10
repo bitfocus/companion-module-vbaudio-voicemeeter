@@ -64,12 +64,12 @@ const upgradeV3_0_0: CompanionStaticUpgradeScript<Config> = (_context, props): C
     let updated = false
 
     if (busActionUpdate.includes(action.actionId)) {
-      let bus = action.options.bus?.value as number
+      const bus = action.options.bus?.value as number
       action.options.bus = { isExpression: false, value: bus === -1 ? 'Selected' : busName[bus] }
       updated = true
     } else if (stripActionUpdate.includes(action.actionId)) {
       let strip = action.options.strip?.value as string | number
-			if (typeof strip === 'string') strip = parseInt(strip)
+      if (typeof strip === 'string') strip = parseInt(strip)
       action.options.strip = { isExpression: false, value: strip === -1 ? 'Selected' : strip + 1 }
       updated = true
     }
@@ -116,18 +116,17 @@ const upgradeV3_0_0: CompanionStaticUpgradeScript<Config> = (_context, props): C
     let updated = false
 
     if (busFeedbackUpdate.includes(feedback.feedbackId)) {
-      let bus = feedback.options.bus?.value as number
+      const bus = feedback.options.bus?.value as number
       feedback.options.bus = { isExpression: false, value: bus === -1 ? 'Selected' : busName[bus] }
       updated = true
     }
 
     if (stripFeedbackUpdate.includes(feedback.feedbackId)) {
-      let strip = feedback.options.strip?.value as number
+      const strip = feedback.options.strip?.value as number
       feedback.options.strip = { isExpression: false, value: strip === -1 ? 'Selected' : strip + 1 }
       updated = true
     }
 
-		
     if (updated) changes.updatedFeedbacks.push(feedback)
   }
 

@@ -3,8 +3,8 @@ import type VoicemeeterInstance from '../index.js'
 import { busName } from '../utils.js'
 
 export type BusVariablesSchema = {
-	bus_names: JsonValue
-	bus_labels: JsonValue
+  bus_names: JsonValue
+  bus_labels: JsonValue
   [key: `bus_${string}`]: JsonValue
   [key: `bus_${string}_mono`]: boolean
   [key: `bus_${string}_mute`]: boolean
@@ -21,9 +21,9 @@ export type BusVariablesSchema = {
 
 export const busDefinitions = (_instance: VoicemeeterInstance): CompanionVariableDefinitions<BusVariablesSchema> => {
   const definitions: CompanionVariableDefinitions<BusVariablesSchema> = {
-		bus_names: { name: `Bus name list` },
-		bus_labels: { name: `Bus labels list` },
-	}
+    bus_names: { name: `Bus name list` },
+    bus_labels: { name: `Bus labels list` },
+  }
 
   for (let i = 0; i < 8; i++) {
     const name = busName[i]
@@ -46,9 +46,9 @@ export const busDefinitions = (_instance: VoicemeeterInstance): CompanionVariabl
 
 export const busValues = async (instance: VoicemeeterInstance): Promise<BusVariablesSchema> => {
   const variables: BusVariablesSchema = {
-		bus_names: busName,
-		bus_labels: instance.data.busLabelUTF8c60
-	}
+    bus_names: busName,
+    bus_labels: instance.data.busLabelUTF8c60,
+  }
 
   for (let i = 0; i < 8; i++) {
     const name = busName[i]

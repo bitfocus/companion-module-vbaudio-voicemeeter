@@ -5,7 +5,8 @@ import { type FeedbacksSchema, getFeedbacks } from './feedback/feedback.js'
 import { httpHandler } from './http.js'
 import { getPresetDefinitions, getPresetStructure } from './presets/presets.js'
 import { getUpgrades } from './upgrade.js'
-import { VariablesSchema, Variables } from './variables/variables.js'
+import type { VariablesSchema } from './variables/variables.js'
+import { Variables } from './variables/variables.js'
 import { type VBANData, defaultData, VBAN } from './vban.js'
 
 export interface InstanceTypes {
@@ -112,4 +113,3 @@ export default class VoicemeeterInstance extends InstanceBase<InstanceTypes> {
 }
 
 export const UpgradeScripts = getUpgrades
-

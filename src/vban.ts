@@ -434,7 +434,7 @@ export class VBAN {
         }
 
         for (let i = 0; i < 8; i++) {
-          let stripValues: number[] = []
+          const stripValues: number[] = []
           for (let x = 0; x < 8; x++) {
             stripValues.push(newData[`stripGaindB100Layer${x + 1}`][i])
           }
@@ -706,7 +706,7 @@ export class VBAN {
         if (err) {
           log.error(`Sending command err: ${err.message}`)
         } else {
-					const logState = forcedUpdate ? 'debug' : 'info'
+          const logState = forcedUpdate ? 'debug' : 'info'
           log[logState](`Sent command: ${command}`)
         }
 

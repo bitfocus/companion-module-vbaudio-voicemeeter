@@ -295,7 +295,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         const updateCompressor = async (command: any, min: number, max: number) => {
@@ -376,7 +376,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         const value = action.options.value
@@ -418,7 +418,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         const value = action.options.value
@@ -452,7 +452,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
       description: 'Control the Gain on a Strip',
       options: [
         options(instance).stripSelect,
-				options(instance).adjustment,
+        options(instance).adjustment,
         {
           type: 'number',
           label: 'Fade time in ms',
@@ -474,7 +474,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         let fade = action.options.fade
@@ -484,10 +484,10 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
 
         let currentValue = instance.data.stripGaindB100Layer0[stripId]
 
-        let busSel = instance.data.busState.find((bus: any) => bus.sel)
+        const busSel = instance.data.busState.find((bus: any) => bus.sel)
 
         if (busSel) {
-          let values: number[] = []
+          const values: number[] = []
 
           instance.data.busState.forEach((bus: any, index: number) => {
             if (bus.sel) values.push(instance.data[`stripGaindB100Layer${index + 1}`][stripId])
@@ -605,7 +605,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         const updateGate = async (command: any, min: number, max: number) => {
@@ -643,7 +643,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
       description: 'Sets Mono on the specified Strip',
       options: [options(instance).stripSelect, options(instance).toggle],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         let value = action.options.type === 'On' ? 1 : 0
@@ -670,7 +670,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
         },
       ],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         let value = action.options.type === 'Mute' ? 1 : 0
@@ -688,7 +688,7 @@ export const getStripActions = (instance: VoicemeeterInstance): CompanionActionD
       description: 'Sets Solo on the specified Strip',
       options: [options(instance).stripSelect, options(instance).toggle],
       callback: async (action) => {
-        let stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
+        const stripId = (action.options.strip === 'Selected' ? instance.selectedStrip : action.options.strip) - 1
         if (stripId === -1) return
 
         let value = action.options.type === 'On' ? 1 : 0

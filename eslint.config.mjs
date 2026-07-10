@@ -14,6 +14,7 @@ const customConfig = [
       // misconfiguration of ts or something?
       'n/no-missing-import': 'off',
       'n/no-unpublished-import': 'off',
+      'no-control-regex': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/consistent-type-imports': 'error',

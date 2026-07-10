@@ -59,7 +59,7 @@ export class Variables {
 
   public readonly updateVariables = async (): Promise<void> => {
     let newVariables: Partial<VariablesSchema> = {}
-    let variablesPromise = await Promise.all([busValues(this.instance), stripValues(this.instance), utilValues(this.instance)])
+    const variablesPromise = await Promise.all([busValues(this.instance), stripValues(this.instance), utilValues(this.instance)])
 
     variablesPromise.forEach((variables: Partial<VariablesSchema>) => {
       newVariables = { ...newVariables, ...variables }

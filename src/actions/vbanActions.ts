@@ -38,12 +38,12 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: 'instream', label: 'VBAN Incoming Stream' },
             { id: 'outstream', label: 'VBAN Outgoing Stream' },
           ],
-					disableAutoExpression: true,
+          disableAutoExpression: true,
         },
         {
           type: 'textinput',
           label: 'Stream Index',
-					description: '0 to 9',
+          description: '0 to 9',
           id: 'index',
           default: '0',
           useVariables: true,
@@ -64,7 +64,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: 'quality', label: 'Quality' },
             { id: 'route', label: 'Route' },
           ],
-					disableAutoExpression: true,
+          disableAutoExpression: true,
         },
         {
           type: 'dropdown',
@@ -75,7 +75,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: 'On', label: 'On' },
             { id: 'Off', label: 'Off' },
           ],
-          isVisibleExpression: `$(options:property) === 'on'`
+          isVisibleExpression: `$(options:property) === 'on'`,
         },
         {
           type: 'textinput',
@@ -83,7 +83,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
           id: 'name',
           default: 'StreamX',
           useVariables: true,
-          isVisibleExpression: `$(options:property) === 'name'`
+          isVisibleExpression: `$(options:property) === 'name'`,
         },
         {
           type: 'textinput',
@@ -91,7 +91,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
           id: 'ip',
           default: '0.0.0.0',
           useVariables: true,
-          isVisibleExpression: `$(options:property) === 'ip'`
+          isVisibleExpression: `$(options:property) === 'ip'`,
         },
         {
           type: 'textinput',
@@ -99,7 +99,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
           id: 'port',
           default: '6980',
           useVariables: true,
-          isVisibleExpression: `$(options:property) === 'port'`
+          isVisibleExpression: `$(options:property) === 'port'`,
         },
         {
           type: 'dropdown',
@@ -118,17 +118,17 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: '88200', label: '88200 Hz' },
             { id: '96000', label: '96000 Hz' },
           ],
-					disableAutoExpression: true,
-          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'sr'`
+          disableAutoExpression: true,
+          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'sr'`,
         },
         {
           type: 'textinput',
           label: 'Channel',
-					description: '1 to 8',
+          description: '1 to 8',
           id: 'channel',
           default: '2',
           useVariables: true,
-          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'channel'`
+          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'channel'`,
         },
         {
           type: 'dropdown',
@@ -139,8 +139,8 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: '1', label: '16 bit PCM' },
             { id: '2', label: '24 bit PCM' },
           ],
-					disableAutoExpression: true,
-          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'bit'`
+          disableAutoExpression: true,
+          isVisibleExpression: `$(options:type) === 'outstream' && $(options:property) === 'bit'`,
         },
         {
           type: 'dropdown',
@@ -154,8 +154,8 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
             { id: '3', label: 'Slow' },
             { id: '4', label: 'Very Slow' },
           ],
-					disableAutoExpression: true,
-          isVisibleExpression: `$(options:property) === 'quality'`
+          disableAutoExpression: true,
+          isVisibleExpression: `$(options:property) === 'quality'`,
         },
         {
           type: 'textinput',
@@ -163,7 +163,7 @@ export const getVBANActions = (instance: VoicemeeterInstance): CompanionActionDe
           id: 'route',
           default: '0',
           useVariables: true,
-          isVisibleExpression: `$(options:property) === 'route'`
+          isVisibleExpression: `$(options:property) === 'route'`,
         },
       ],
       callback: async (action) => {

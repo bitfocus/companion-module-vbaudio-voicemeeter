@@ -24,7 +24,7 @@ export const utilValues = async (instance: VoicemeeterInstance): Promise<UtilVar
     type: instance.data.voicemeeterType,
     version: instance.data.voicemeeterVersion,
     util_selected_bus: instance.selectedBus,
-    util_selected_strip: instance.selectedStrip === 9 ? 'Recorder' : instance.data.stripLabelUTF8c60[instance.selectedStrip - 1]
+    util_selected_strip: instance.selectedStrip === 9 ? 'Recorder' : instance.data.stripLabelUTF8c60[instance.selectedStrip - 1],
   }
 
   return variables

@@ -253,7 +253,7 @@ export const getBusStructure = (): CompanionPresetSection<InstanceTypes>[] => {
     ...busName.map((bus) => {
       return {
         id: `busPresets${bus}`,
-        type: 'simple' as 'simple',
+        type: 'simple' as const,
         name: `${bus}`,
         description: `Bus ${bus}`,
         presets: [

@@ -143,7 +143,7 @@ export const stripValues = async (instance: VoicemeeterInstance): Promise<StripV
   for (let i = 1; i <= 9; i++) {
     const name = i === 9 ? 'Selected' : i.toString()
     const stripId = i === 9 ? instance.selectedStrip : i - 1
-		if (!instance.data.stripState[stripId]) continue
+    if (!instance.data.stripState[stripId]) continue
 
     variables[`strip_${name}`] = instance.data.stripState[stripId]
     variables[`strip_${name}_mono`] = instance.data.stripState[stripId].mono
@@ -151,13 +151,13 @@ export const stripValues = async (instance: VoicemeeterInstance): Promise<StripV
     variables[`strip_${name}_solo`] = instance.data.stripState[stripId].solo
     variables[`strip_${name}_mc`] = instance.data.stripState[stripId].muteC
 
-    let gainValue: number[] = []
+    const gainValue: number[] = []
     instance.data.busState.forEach((bus, index) => {
       if (bus.sel) {
         gainValue.push(instance.data[`stripGaindB100Layer${index + 1}`][stripId])
       }
     })
-		variables[`strip_${name}_fader`] = Math.round(Math.pow((instance.data.stripGaindB100Layer0[stripId] + 60) / 72, 1) * 100)
+    variables[`strip_${name}_fader`] = Math.round(Math.pow((instance.data.stripGaindB100Layer0[stripId] + 60) / 72, 1) * 100)
     variables[`strip_${name}_gain`] = gainValue.length > 0 ? Math.max(...gainValue) : instance.data.stripGaindB100Layer0[stripId]
 
     for (let j = 0; j < 8; j++) {

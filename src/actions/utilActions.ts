@@ -40,12 +40,12 @@ export const getUtilActions = (instance: VoicemeeterInstance): CompanionActionDe
           id: 'strip',
           default: 1,
           choices: [
-						...instance.data.stripLabelUTF8c60.map((label: string, index: number) => ({
-							id: index + 1,
-							label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}` }
-						)),
-						{ id: 9, label: 'Recorder' }
-					],
+            ...instance.data.stripLabelUTF8c60.map((label: string, index: number) => ({
+              id: index + 1,
+              label: label ? `Strip ${index + 1}: ${label}` : `${index + 1}`,
+            })),
+            { id: 9, label: 'Recorder' },
+          ],
         },
       ],
       callback: async (action) => {

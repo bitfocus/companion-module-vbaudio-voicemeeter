@@ -75,7 +75,7 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
             { id: 'ArmBus(6)', label: 'Bus B2' },
             { id: 'ArmBus(7)', label: 'Bus B3' },
           ],
-					disableAutoExpression: true
+          disableAutoExpression: true,
         },
         {
           type: 'dropdown',
@@ -86,7 +86,7 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
             { id: 'On', label: 'On' },
             { id: 'Off', label: 'Off' },
           ],
-					expressionDescription: `Valid Values: 'On', 'Off'`
+          expressionDescription: `Valid Values: 'On', 'Off'`,
         },
       ],
       callback: async (action) => {
@@ -107,7 +107,7 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
             { id: 'strip', label: 'Pre-Fader Inputs' },
             { id: 'bus', label: 'Post-Fader Outputs' },
           ],
-					expressionDescription: `Valid Values: 'strip', or 'bus'`
+          expressionDescription: `Valid Values: 'strip', or 'bus'`,
         },
       ],
       callback: async (action) => {
@@ -123,11 +123,11 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
         {
           type: 'number',
           label: 'Volume',
-					description: `-60 to 12`,
+          description: `-60 to 12`,
           id: 'value',
           default: 0,
-					min: -60,
-					max: 12,
+          min: -60,
+          max: 12,
         },
       ],
       callback: async (action) => {
@@ -176,7 +176,7 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
             { id: 'Loop', label: 'Loop' },
             { id: 'PlayOnLoad', label: 'Play-On-Load' },
           ],
-					disableAutoExpression: true
+          disableAutoExpression: true,
         },
         {
           type: 'dropdown',
@@ -187,7 +187,7 @@ export const getRecorderActions = (instance: VoicemeeterInstance): CompanionActi
             { id: 'On', label: 'On' },
             { id: 'Off', label: 'Off' },
           ],
-					isVisibleExpression: `$(options:type) === 'Loop' || $(options:type) === 'PlayOnLoad'`
+          isVisibleExpression: `$(options:type) === 'Loop' || $(options:type) === 'PlayOnLoad'`,
         },
       ],
       callback: async (action) => {

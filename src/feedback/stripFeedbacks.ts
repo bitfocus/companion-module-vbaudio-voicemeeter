@@ -24,7 +24,7 @@ export type StripFeedbacksSchema = {
 
 export const getStripFeedbacks = (instance: VoicemeeterInstance): CompanionFeedbackDefinitions<StripFeedbacksSchema> => {
   return {
-		routing: {
+    routing: {
       type: 'boolean',
       name: 'Routing',
       description: 'Indicate if a Strip is routed to a Bus',
@@ -45,7 +45,7 @@ export const getStripFeedbacks = (instance: VoicemeeterInstance): CompanionFeedb
             { id: 7, label: 'Aux 3' },
             { id: 9, label: 'Selected' },
           ],
-					disableAutoExpression: true,
+          disableAutoExpression: true,
         },
         {
           type: 'dropdown',
@@ -53,7 +53,7 @@ export const getStripFeedbacks = (instance: VoicemeeterInstance): CompanionFeedb
           id: 'destination',
           default: 'A1',
           choices: ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3'].map((type) => ({ id: type, label: type })),
-					expressionDescription: `Valid Values: 'A1' to 'B3'`,
+          expressionDescription: `Valid Values: 'A1' to 'B3'`,
         },
       ],
       defaultStyle: {
@@ -73,7 +73,7 @@ export const getStripFeedbacks = (instance: VoicemeeterInstance): CompanionFeedb
       name: 'Strip - Meters',
       description: 'Strip Volume Meters',
       options: [options(instance).stripSelect],
-			affectedProperties: ['imageBuffer'],
+      affectedProperties: ['imageBuffer'],
       callback: (feedback) => {
         const stripId = feedback.options.strip === 'Selected' ? instance.selectedStrip : feedback.options.strip
         const strip = instance.data.inputLeveldB100[stripId - 1]
@@ -138,6 +138,5 @@ export const getStripFeedbacks = (instance: VoicemeeterInstance): CompanionFeedb
         return instance.data.stripState[stripId - 1]?.solo
       },
     },
-
-	}
+  }
 }

@@ -206,14 +206,14 @@ export const getStripStructure = (): CompanionPresetSection<InstanceTypes>[] => 
   for (let i = 1; i < 9; i++) {
     stripGroups.push({
       id: `stripPresets${i}`,
-      type: 'simple' as 'simple',
+      type: 'simple' as const,
       name: `${i} Actions/Feedback`,
       presets: [`strip_${i}_gainInc`, `strip_${i}_gainDec`, `strip_${i}_mono`, `strip_${i}_mute`, `strip_${i}_solo`],
     })
 
     const routingPreset: CompanionPresetGroupSimple<InstanceTypes> = {
       id: `stripPresets${i}`,
-      type: 'simple' as 'simple',
+      type: 'simple' as const,
       name: `${i} Routing`,
       presets: [],
     }
@@ -221,8 +221,8 @@ export const getStripStructure = (): CompanionPresetSection<InstanceTypes>[] => 
     busName.forEach((bus) => {
       routingPreset.presets.push(`strip_${i}_routing_${bus}`)
     })
-		
-		routingGroups.push(routingPreset)
+
+    routingGroups.push(routingPreset)
   }
 
   const stripStructure: CompanionPresetSection<InstanceTypes>[] = [
